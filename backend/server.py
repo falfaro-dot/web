@@ -299,7 +299,7 @@ async def get_treasury_balances(client_name: Optional[str] = None):
         query["client_name"] = {"$regex": client_name, "$options": "i"}
     
     balances = await db.treasury_balances.find(query).to_list(length=None)
-    return balances
+    return serialize_doc(balances)
 
 @app.get("/api/dashboard/transactions")
 async def get_transactions(
