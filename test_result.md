@@ -233,9 +233,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Upload de archivos Excel"
-    - "Dashboard de tesorería y transacciones"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
