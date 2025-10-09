@@ -320,7 +320,7 @@ async def get_transactions(
         }
     
     transactions = await db.transactions.find(query).sort("fecha", -1).to_list(length=None)
-    return transactions
+    return serialize_doc(transactions)
 
 @app.get("/api/clients")
 async def get_clients():
