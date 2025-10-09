@@ -107,63 +107,81 @@ user_problem_statement: "Sistema de gestión de tesorería para procesar archivo
 backend:
   - task: "Autenticación de usuarios"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implementado endpoint /api/auth/login con usuarios Ejecutivo1 y Ejecutivo2. Necesita testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Authentication endpoint working correctly. Valid credentials (Ejecutivo1/Ejecutivo1, Ejecutivo2/Ejecutivo2) authenticate successfully. Invalid credentials properly rejected. All test scenarios passed."
 
   - task: "Procesamiento de archivos Excel (.xlsm)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implementado procesamiento de Excel con openpyxl. Extrae datos de celdas fijas (D2, D6, D7, D8, D9, D10), descripción (E13) y valores financieros de columna K/L. Necesita testing con archivo real."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Excel processing working correctly with test_layout.xlsm. Successfully extracts: Cliente=COMERCIALIZADORA ASAP DE CHIHUAHUA, RFC=CAC231019F51, Subtotal=41508.62, IVA=6641.38, Total=48150.0. All 4 classification types tested successfully. Minor: Client name has trailing space in Excel file but doesn't affect functionality."
 
   - task: "Cálculo de comisiones financieras"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implementadas fórmulas: Comisión 1, Retorno 1, Comisión Estructura, Comisión IBSG, Retorno 2. Valores por defecto 5% y 2.5% configurables."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Commission calculations working correctly. Tested default rates (5%, 2.5%) and custom rates (7.5%, 3.0%). All formulas calculate accurately: Comisión 1, Retorno 1, Comisión Estructura, Comisión IBSG, Retorno 2. Mathematical precision verified."
 
   - task: "Gestión de balance de tesorería"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implementado sistema de actualización de balance según clasificación (Abono/Cargo). Necesita testing de múltiples transacciones."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Treasury balance management working correctly. Successfully tested 'Abono a Tesorería' (adds to balance) and 'Cargo/Retiro de Tesorería' (subtracts from balance). Balance updates properly stored in database."
 
   - task: "Endpoints de dashboard"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implementados endpoints: /api/dashboard/treasury y /api/dashboard/transactions con filtros por cliente y fecha."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE FOUND: Dashboard endpoints returning HTTP 500 errors due to MongoDB ObjectId serialization problem. FastAPI cannot serialize ObjectId objects to JSON."
+      - working: true
+        agent: "testing"
+        comment: "✅ FIXED & PASSED: Added ObjectId serialization helper function to convert MongoDB ObjectIds to strings. All dashboard endpoints now working: /api/dashboard/treasury (with/without client filter), /api/dashboard/transactions (with client filter), /api/clients. Retrieved 16 transactions and 1 client successfully."
 
 frontend:
   - task: "Página de login"
