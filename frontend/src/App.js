@@ -360,6 +360,21 @@ function App() {
               </div>
             </div>
             
+            {/* Treasury Total */}
+            <div className="total-card">
+              <div className="total-content">
+                <div className="total-label">
+                  <span className="total-icon">💎</span>
+                  <span>Balance Total de Tesorería</span>
+                </div>
+                <div className="total-amount">
+                  {formatCurrency(
+                    treasuryBalances.reduce((sum, balance) => sum + balance.balance, 0)
+                  )}
+                </div>
+              </div>
+            </div>
+            
             {/* Treasury Balances */}
             <div className="section-card">
               <h2>💰 Balance de Tesorería por Cliente</h2>
