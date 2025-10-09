@@ -198,27 +198,33 @@ frontend:
 
   - task: "Upload de archivos Excel"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Formulario de upload con campos de comisiones configurables y clasificación de transacción. Necesita testing end-to-end."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Excel upload functionality working perfectly. Tested with test_layout.xlsm file - successful processing with custom commission rates (6%, 3%) and all 4 classification types. Form validation working, file input clears after upload, success message displays correctly. Default values (5%, 2.5%) verified. All upload scenarios tested successfully."
 
   - task: "Dashboard de tesorería y transacciones"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implementado dashboard con tablas de balance y transacciones, filtros de búsqueda por cliente y fecha. Necesita testing con datos reales."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Dashboard functionality working excellently. Treasury balance table shows 2 clients with proper currency formatting ($48,150.00, $91,582.00) and positive balance colors (green). Transaction history table displays 16+ transactions with all financial data correctly formatted. Search filters working: client name filter, date range filters, and combined filters all functional. Data loads properly from backend APIs."
 
 metadata:
   created_by: "main_agent"
