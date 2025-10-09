@@ -228,10 +228,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Autenticación de usuarios"
-    - "Procesamiento de archivos Excel (.xlsm)"
-    - "Cálculo de comisiones financieras"
-    - "Gestión de balance de tesorería"
+    - "Upload de archivos Excel"
+    - "Dashboard de tesorería y transacciones"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
