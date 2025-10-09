@@ -326,7 +326,7 @@ async def get_transactions(
 async def get_clients():
     """Get all clients"""
     clients = await db.clients.find().to_list(length=None)
-    return clients
+    return serialize_doc(clients)
 
 @app.get("/api/health")
 async def health_check():
