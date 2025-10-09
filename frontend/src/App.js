@@ -1,52 +1,450 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import './App.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState('');
+  const [activeView, setActiveView] = useState('upload');
+  
+  // Login state
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  
+  // Upload state
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [comision, setComision] = useState(5.0);
+  const [comisionEstructura, setComisionEstructura] = useState(2.5);
+  const [clasificacion, setClasificacion] = useState('Abono a Tesorería');
+  const [uploadMessage, setUploadMessage] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Dashboard state
+  const [treasuryBalances, setTreasuryBalances] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [searchClient, setSearchClient] = useState('');
+  const [searchDateStart, setSearchDateStart] = useState('');
+  const [searchDateEnd, setSearchDateEnd] = useState('');
+  
+  // Check login status
+  useEffect(() => {
+    const user = localStorage.getItem('username');
+    if (user) {
+      setIsLoggedIn(true);
+      setCurrentUser(user);
+    }
+  }, []);
+  
+  // Login handler
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setIsLoggedIn(true);
+        setCurrentUser(username);
+        localStorage.setItem('username', username);
+      } else {
+        setLoginError(data.message);
+      }
+    } catch (error) {
+      setLoginError('Error de conexión. Intente nuevamente.');
+    }
+  };
+  
+  // Logout handler
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentUser('');
+    localStorage.removeItem('username');
+    setUsername('');
+    setPassword('');
+  };
+  
+  // File upload handler
+  const handleFileUpload = async (e) => {
+    e.preventDefault();
+    
+    if (!selectedFile) {
+      setUploadMessage('Por favor seleccione un archivo');
+      return;
+    }
+    
+    setIsProcessing(true);
+    setUploadMessage('');
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('comision', comision);
+      formData.append('comision_estructura', comisionEstructura);
+      formData.append('clasificacion', clasificacion);
+      formData.append('ejecutivo', currentUser);
+      
+      const response = await fetch(`${BACKEND_URL}/api/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setUploadMessage('✓ Archivo procesado exitosamente');
+        setSelectedFile(null);
+        document.getElementById('fileInput').value = '';
+      } else {
+        setUploadMessage('✗ Error: ' + data.message);
+      }
+    } catch (error) {
+      setUploadMessage('✗ Error de conexión: ' + error.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  
+  // Load treasury balances
+  const loadTreasuryBalances = async () => {
+    try {
+      const url = searchClient 
+        ? `${BACKEND_URL}/api/dashboard/treasury?client_name=${encodeURIComponent(searchClient)}`
+        : `${BACKEND_URL}/api/dashboard/treasury`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      setTreasuryBalances(data);
+    } catch (error) {
+      console.error('Error loading treasury balances:', error);
+    }
+  };
+  
+  // Load transactions
+  const loadTransactions = async () => {
+    try {
+      let url = `${BACKEND_URL}/api/dashboard/transactions?`;
+      if (searchClient) url += `client_name=${encodeURIComponent(searchClient)}&`;
+      if (searchDateStart) url += `fecha_inicio=${searchDateStart}T00:00:00Z&`;
+      if (searchDateEnd) url += `fecha_fin=${searchDateEnd}T23:59:59Z&`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      setTransactions(data);
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+    }
+  };
+  
+  // Load dashboard data when view changes
+  useEffect(() => {
+    if (activeView === 'dashboard') {
+      loadTreasuryBalances();
+      loadTransactions();
+    }
+  }, [activeView]);
+  
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(amount);
+  };
+  
+  // Format date
+  const formatDate = (isoDate) => {
+    return new Date(isoDate).toLocaleString('es-MX', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+  
+  // Login Screen
+  if (!isLoggedIn) {
+    return (
+      <div className="login-container">
+        <div className="login-box">
+          <div className="logo-container">
+            <img src="https://customer-assets.emergentagent.com/job_finance-parser-4/artifacts/zggp8w9v_logo2.jpg" alt="IBS Group" className="logo" />
+          </div>
+          <h1>Sistema de Gestión de Tesorería</h1>
+          <form onSubmit={handleLogin}>
+            <div className="form-group">
+              <label>Usuario</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Ejecutivo1"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Contraseña</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            {loginError && <div className="error-message">{loginError}</div>}
+            <button type="submit" className="btn-primary">Iniciar Sesión</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+  
+  // Main Application
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+    <div className="app-container">
+      {/* Header */}
+      <header className="app-header">
+        <div className="header-content">
+          <div className="header-left">
+            <img src="https://customer-assets.emergentagent.com/job_finance-parser-4/artifacts/twvm8fyz_logo3.png" alt="IBS" className="header-logo" />
+            <h1>Sistema de Gestión de Tesorería</h1>
+          </div>
+          <div className="header-right">
+            <span className="user-info">👤 {currentUser}</span>
+            <button onClick={handleLogout} className="btn-logout">Cerrar Sesión</button>
+          </div>
+        </div>
+      </header>
+      
+      {/* Navigation */}
+      <nav className="app-nav">
+        <button
+          className={activeView === 'upload' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveView('upload')}
+        >
+          📤 Cargar Archivo
+        </button>
+        <button
+          className={activeView === 'dashboard' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveView('dashboard')}
+        >
+          📊 Dashboard
+        </button>
+      </nav>
+      
+      {/* Main Content */}
+      <main className="app-main">
+        {activeView === 'upload' && (
+          <div className="upload-section">
+            <div className="section-card">
+              <h2>📁 Cargar Archivo Excel</h2>
+              <form onSubmit={handleFileUpload}>
+                <div className="form-group">
+                  <label>Archivo Layout (.xlsm)</label>
+                  <input
+                    id="fileInput"
+                    type="file"
+                    accept=".xlsm,.xlsx"
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                    required
+                  />
+                  {selectedFile && <span className="file-name">✓ {selectedFile.name}</span>}
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Comisión 1 (%)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={comision}
+                      onChange={(e) => setComision(parseFloat(e.target.value))}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Comisión Estructura (%)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={comisionEstructura}
+                      onChange={(e) => setComisionEstructura(parseFloat(e.target.value))}
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Clasificación de Transacción</label>
+                  <select
+                    value={clasificacion}
+                    onChange={(e) => setClasificacion(e.target.value)}
+                    required
+                  >
+                    <option value="Abono a Tesorería">Abono a Tesorería</option>
+                    <option value="Cargo/Retiro de Tesorería">Cargo/Retiro de Tesorería</option>
+                    <option value="Transacción Fondeada Directamente">Transacción Fondeada Directamente</option>
+                    <option value="Transacción de Servicio/Facturación">Transacción de Servicio/Facturación</option>
+                  </select>
+                </div>
+                
+                {uploadMessage && (
+                  <div className={uploadMessage.includes('✓') ? 'success-message' : 'error-message'}>
+                    {uploadMessage}
+                  </div>
+                )}
+                
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? '⏳ Procesando...' : '🚀 Procesar Archivo'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+        
+        {activeView === 'dashboard' && (
+          <div className="dashboard-section">
+            {/* Search Filters */}
+            <div className="section-card">
+              <h2>🔍 Filtros de Búsqueda</h2>
+              <div className="filter-row">
+                <div className="form-group">
+                  <label>Cliente</label>
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre"
+                    value={searchClient}
+                    onChange={(e) => setSearchClient(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Fecha Inicio</label>
+                  <input
+                    type="date"
+                    value={searchDateStart}
+                    onChange={(e) => setSearchDateStart(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Fecha Fin</label>
+                  <input
+                    type="date"
+                    value={searchDateEnd}
+                    onChange={(e) => setSearchDateEnd(e.target.value)}
+                  />
+                </div>
+                <button
+                  className="btn-search"
+                  onClick={() => {
+                    loadTreasuryBalances();
+                    loadTransactions();
+                  }}
+                >
+                  🔍 Buscar
+                </button>
+              </div>
+            </div>
+            
+            {/* Treasury Balances */}
+            <div className="section-card">
+              <h2>💰 Balance de Tesorería por Cliente</h2>
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Cliente</th>
+                      <th>Balance Actual</th>
+                      <th>Última Actualización</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {treasuryBalances.length === 0 ? (
+                      <tr>
+                        <td colSpan="3" className="no-data">No hay datos de tesorería</td>
+                      </tr>
+                    ) : (
+                      treasuryBalances.map((balance) => (
+                        <tr key={balance.client_id}>
+                          <td>{balance.client_name}</td>
+                          <td className={balance.balance >= 0 ? 'positive' : 'negative'}>
+                            {formatCurrency(balance.balance)}
+                          </td>
+                          <td>{formatDate(balance.last_updated)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            {/* Transactions */}
+            <div className="section-card">
+              <h2>📋 Historial de Transacciones</h2>
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Cliente</th>
+                      <th>Descripción</th>
+                      <th>Subtotal</th>
+                      <th>IVA</th>
+                      <th>Total Factura</th>
+                      <th>Comisión 1</th>
+                      <th>Retorno 2</th>
+                      <th>Clasificación</th>
+                      <th>Ejecutivo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.length === 0 ? (
+                      <tr>
+                        <td colSpan="10" className="no-data">No hay transacciones</td>
+                      </tr>
+                    ) : (
+                      transactions.map((tx) => (
+                        <tr key={tx.id}>
+                          <td>{formatDate(tx.fecha)}</td>
+                          <td>{tx.client_name}</td>
+                          <td className="description-cell">{tx.descripcion}</td>
+                          <td>{formatCurrency(tx.subtotal)}</td>
+                          <td>{formatCurrency(tx.iva)}</td>
+                          <td>{formatCurrency(tx.total_factura)}</td>
+                          <td>{formatCurrency(tx.comision_1)}</td>
+                          <td>{formatCurrency(tx.retorno_2)}</td>
+                          <td><span className="badge">{tx.clasificacion}</span></td>
+                          <td>{tx.ejecutivo}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+      
+      {/* Footer */}
+      <footer className="app-footer">
+        <p>© 2025 IBS Group - Integra Business Solutions</p>
+      </footer>
     </div>
   );
 }
