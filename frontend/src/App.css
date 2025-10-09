@@ -146,6 +146,42 @@ body {
   border-left: 5px solid #C5B77D;
 }
 
+/* Total Card */
+.total-card {
+  background: linear-gradient(135deg, #C5B77D 0%, #a89860 100%);
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 5px 20px rgba(197, 183, 125, 0.3);
+  border: none;
+}
+
+.total-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.total-icon {
+  font-size: 32px;
+}
+
+.total-amount {
+  color: white;
+  font-size: 42px;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 .section-card h2 {
   color: #1F1F1F;
   font-size: 24px;
