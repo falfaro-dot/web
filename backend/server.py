@@ -493,6 +493,22 @@ async def get_operations_summary(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generando resumen: {str(e)}")
 
+@app.post("/api/transactions/update_state")
+async def update_transaction_state(request: UpdateTransactionStateRequest):
+    """Update transaction state"""
+    try:
+        result = await db.transactions.update_one(
+            {"id": request.transaction_id},
+            {"$set": {"estado": request.estado}}
+        )
+        
+        if result.modified_count > 0:
+            return {"success": True, "message": "Estado actualizado"}
+        else:
+            raise HTTPException(status_code=404, detail="Transacción no encontrada")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error actualizando estado: {str(e)}")
+
 @app.get("/api/export/transactions/xlsx")
 async def export_transactions_xlsx(
     client_name: Optional[str] = None,
