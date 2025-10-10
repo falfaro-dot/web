@@ -156,6 +156,11 @@ body {
   border: none;
 }
 
+.total-card-secondary {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+}
+
 .total-content {
   display: flex;
   justify-content: space-between;
