@@ -606,6 +606,7 @@ function App() {
                       transactions.map((tx) => (
                         <tr key={tx.id} className={tx.total_factura < 0 ? 'cancelled-row' : ''}>
                           <td>{formatDate(tx.fecha)}</td>
+                          <td className="rfc-cell">{tx.client_rfc || 'N/A'}</td>
                           <td>{tx.client_name}</td>
                           <td className="description-cell">{tx.descripcion}</td>
                           <td className={tx.subtotal < 0 ? 'negative' : ''}>{formatCurrency(tx.subtotal)}</td>
