@@ -582,6 +582,7 @@ function App() {
                   <thead>
                     <tr>
                       <th>Fecha</th>
+                      <th>RFC</th>
                       <th>Cliente</th>
                       <th>Descripción</th>
                       <th>Subtotal</th>
