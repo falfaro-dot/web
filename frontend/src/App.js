@@ -464,6 +464,41 @@ function App() {
               </div>
             </div>
             
+            {/* Returns by Status */}
+            <div className="totals-row">
+              <div className="total-card total-card-secondary total-card-small">
+                <div className="total-content">
+                  <div className="total-label">
+                    <span className="total-icon">📤</span>
+                    <span>Retornos Enviados</span>
+                  </div>
+                  <div className="total-amount">
+                    {formatCurrency(
+                      dashboardTransactions
+                        .filter(tx => (tx.estado || 'Enviado') === 'Enviado')
+                        .reduce((sum, tx) => sum + tx.retorno_1, 0)
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="total-card total-card-secondary total-card-small">
+                <div className="total-content">
+                  <div className="total-label">
+                    <span className="total-icon">✅</span>
+                    <span>Retornos Pagados</span>
+                  </div>
+                  <div className="total-amount">
+                    {formatCurrency(
+                      dashboardTransactions
+                        .filter(tx => tx.estado === 'Pagado')
+                        .reduce((sum, tx) => sum + tx.retorno_1, 0)
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             {/* Treasury Balances */}
             <div className="section-card">
               <h2>💰 Balance de Tesorería por Cliente</h2>
