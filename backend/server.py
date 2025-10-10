@@ -356,6 +356,118 @@ async def get_clients():
     clients = await db.clients.find().to_list(length=None)
     return serialize_doc(clients)
 
+@app.post("/api/transactions/cancel")
+async def cancel_transaction(request: CancelTransactionRequest):
+    """Cancel a transaction by creating a negative entry"""
+    try:
+        # Get original transaction
+        original_tx = await db.transactions.find_one({"id": request.transaction_id})
+        if not original_tx:
+            raise HTTPException(status_code=404, detail="Transacción no encontrada")
+        
+        # Create cancellation transaction (negative values)
+        cancel_tx = Transaction(
+            client_id=original_tx["client_id"],
+            client_name=original_tx["client_name"],
+            descripcion=f"CANCELACIÓN - {original_tx['descripcion']} - Motivo: {request.motivo}",
+            subtotal=-original_tx["subtotal"],
+            iva=-original_tx["iva"],
+            total_factura=-original_tx["total_factura"],
+            comision_porcentaje=original_tx["comision_porcentaje"],
+            comision_1=-original_tx["comision_1"],
+            retorno_1=-original_tx["retorno_1"],
+            comision_estructura_porcentaje=original_tx["comision_estructura_porcentaje"],
+            comision_estructura=-original_tx["comision_estructura"],
+            comision_ibsg=-original_tx["comision_ibsg"],
+            retorno_2=-original_tx["retorno_2"],
+            clasificacion=f"CANCELADA - {original_tx['clasificacion']}",
+            fecha=datetime.now(timezone.utc).isoformat(),
+            ejecutivo=request.ejecutivo
+        )
+        await db.transactions.insert_one(cancel_tx.dict())
+        
+        # Update treasury balance if original was Abono or Cargo
+        if original_tx["clasificacion"] in ["Abono a Tesorería", "Cargo/Retiro de Tesorería"]:
+            treasury = await db.treasury_balances.find_one({"client_id": original_tx["client_id"]})
+            if treasury:
+                # Reverse the original operation
+                if "Abono" in original_tx["clasificacion"]:
+                    new_balance = treasury["balance"] - original_tx["total_factura"]
+                else:
+                    new_balance = treasury["balance"] + original_tx["total_factura"]
+                
+                await db.treasury_balances.update_one(
+                    {"client_id": original_tx["client_id"]},
+                    {"$set": {
+                        "balance": round(new_balance, 2),
+                        "last_updated": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+        
+        return {
+            "success": True,
+            "message": "Transacción cancelada exitosamente",
+            "cancel_transaction": cancel_tx.dict()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error cancelando transacción: {str(e)}")
+
+@app.get("/api/dashboard/operations_summary")
+async def get_operations_summary(
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None
+):
+    """Get operations summary by client with transaction count, total billed, commissions, and returns"""
+    try:
+        # Build query for date filter
+        query = {}
+        if fecha_inicio and fecha_fin:
+            query["fecha"] = {
+                "$gte": fecha_inicio,
+                "$lte": fecha_fin
+            }
+        
+        # Get all transactions
+        transactions = await db.transactions.find(query).to_list(length=None)
+        
+        # Group by client and calculate summaries
+        summary_dict = {}
+        for tx in transactions:
+            client_id = tx["client_id"]
+            if client_id not in summary_dict:
+                # Get client RFC
+                client = await db.clients.find_one({"id": client_id})
+                summary_dict[client_id] = {
+                    "rfc": client["rfc"] if client else tx.get("client_rfc", "N/A"),
+                    "client_name": tx["client_name"],
+                    "transaction_count": 0,
+                    "total_facturado": 0.0,
+                    "total_comisiones": 0.0,
+                    "total_retornos": 0.0
+                }
+            
+            # Accumulate values
+            summary_dict[client_id]["transaction_count"] += 1
+            summary_dict[client_id]["total_facturado"] += tx["total_factura"]
+            summary_dict[client_id]["total_comisiones"] += tx["comision_1"]
+            summary_dict[client_id]["total_retornos"] += tx["retorno_1"]
+        
+        # Convert to list and round values
+        summary_list = []
+        for client_id, data in summary_dict.items():
+            summary_list.append({
+                "rfc": data["rfc"],
+                "client_name": data["client_name"],
+                "transaction_count": data["transaction_count"],
+                "total_facturado": round(data["total_facturado"], 2),
+                "total_comisiones": round(data["total_comisiones"], 2),
+                "total_retornos": round(data["total_retornos"], 2)
+            })
+        
+        return serialize_doc(summary_list)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generando resumen: {str(e)}")
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "message": "Treasury Management System API"}
