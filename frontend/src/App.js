@@ -548,7 +548,35 @@ function App() {
             
             {/* Transactions Table */}
             <div className="section-card">
-              <h2>📋 Historial de Transacciones</h2>
+              <div className="transactions-header">
+                <h2>📋 Historial de Transacciones</h2>
+                <div className="export-buttons">
+                  <button
+                    className="btn-export"
+                    onClick={() => {
+                      let url = `${BACKEND_URL}/api/export/transactions/xlsx?`;
+                      if (searchRFC) url += `client_name=${encodeURIComponent(searchRFC)}&`;
+                      if (searchDateStart) url += `fecha_inicio=${searchDateStart}T00:00:00Z&`;
+                      if (searchDateEnd) url += `fecha_fin=${searchDateEnd}T23:59:59Z&`;
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    📥 Descargar Excel
+                  </button>
+                  <button
+                    className="btn-export"
+                    onClick={() => {
+                      let url = `${BACKEND_URL}/api/export/transactions/csv?`;
+                      if (searchRFC) url += `client_name=${encodeURIComponent(searchRFC)}&`;
+                      if (searchDateStart) url += `fecha_inicio=${searchDateStart}T00:00:00Z&`;
+                      if (searchDateEnd) url += `fecha_fin=${searchDateEnd}T23:59:59Z&`;
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    📥 Descargar CSV
+                  </button>
+                </div>
+              </div>
               <div className="table-container">
                 <table className="data-table transactions-table">
                   <thead>
