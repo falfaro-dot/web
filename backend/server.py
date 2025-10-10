@@ -607,7 +607,7 @@ async def export_transactions_csv(
         
         # Write headers
         writer.writerow([
-            "Fecha", "Cliente", "RFC", "Descripción", "Subtotal", "IVA",
+            "Fecha", "RFC", "Cliente", "Descripción", "Subtotal", "IVA",
             "Total Factura", "Comisión 1", "Retorno 1", "Comisión Estructura",
             "Comisión IBSG", "Clasificación", "Usuario"
         ])
