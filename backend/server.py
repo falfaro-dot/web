@@ -106,6 +106,11 @@ class TreasuryBalance(BaseModel):
     balance: float
     last_updated: str
 
+class CancelTransactionRequest(BaseModel):
+    transaction_id: str
+    motivo: str
+    ejecutivo: str
+
 # Initialize default users
 @app.on_event("startup")
 async def startup_event():
