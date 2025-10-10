@@ -648,4 +648,4 @@ async def export_transactions_csv(
 
 @app.get("/api/health")
 async def health_check():
-    return {"status": "healthy", "message": "Treasury Management System API"}
+    return {"status": "healthy", "message": "Sistema de Registro de Operaciones API"}
