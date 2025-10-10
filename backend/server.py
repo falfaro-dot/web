@@ -581,7 +581,8 @@ async def export_transactions_xlsx(
             ws.cell(row=row_num, column=10, value=tx["comision_estructura"])
             ws.cell(row=row_num, column=11, value=abs(tx["comision_ibsg"]))  # Absolute value
             ws.cell(row=row_num, column=12, value=tx["clasificacion"])
-            ws.cell(row=row_num, column=13, value=tx["ejecutivo"])
+            ws.cell(row=row_num, column=13, value=tx.get("estado", "Enviado"))
+            ws.cell(row=row_num, column=14, value=tx["ejecutivo"])
             
             # Apply red color for cancelled transactions
             if tx["total_factura"] < 0:
