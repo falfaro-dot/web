@@ -157,8 +157,28 @@ body {
 }
 
 .total-card-secondary {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+  background: linear-gradient(135deg, #a89860 0%, #8f7d4e 100%);
+  box-shadow: 0 5px 20px rgba(197, 183, 125, 0.3);
+}
+
+.total-card-small {
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.total-card-small .total-label {
+  font-size: 16px;
+}
+
+.total-card-small .total-amount {
+  font-size: 32px;
+}
+
+.totals-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
 .total-content {
