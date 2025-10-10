@@ -547,7 +547,7 @@ async def export_transactions_xlsx(
         headers = [
             "Fecha", "RFC", "Cliente", "Descripción", "Subtotal", "IVA", 
             "Total Factura", "Comisión 1", "Retorno 1", "Comisión Estructura", 
-            "Comisión IBSG", "Clasificación", "Usuario"
+            "Comisión IBSG", "Clasificación", "Estado", "Usuario"
         ]
         
         # Style for headers
