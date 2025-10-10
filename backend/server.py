@@ -495,6 +495,8 @@ async def get_operations_summary(
                 "transaction_count": data["transaction_count"],
                 "total_facturado": round(data["total_facturado"], 2),
                 "total_comisiones": round(data["total_comisiones"], 2),
+                "total_comision_estructura": round(data.get("total_comision_estructura", 0.0), 2),
+                "total_comision_ibsg": round(data.get("total_comision_ibsg", 0.0), 2),
                 "total_retornos": round(data["total_retornos"], 2)
             })
         
