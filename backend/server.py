@@ -112,13 +112,36 @@ async def startup_event():
     # Create default users if not exist
     users_collection = db.users
     
-    for i in range(1, 3):
-        username = f"Ejecutivo{i}"
-        existing_user = await users_collection.find_one({"username": username})
+    # Remove old users
+    await users_collection.delete_many({"username": {"$in": ["Ejecutivo1", "Ejecutivo2"]}})
+    
+    # New users list
+    new_users = [
+        {"username": "direccion@ibsgroup.mx", "password": "Sistema1"},
+        {"username": "operaciones@ibsgroup.mx", "password": "Sistema2"},
+        {"username": "f.alfaro@ibsgroup.mx", "password": "Sistema3"},
+        {"username": "administracion@ibsgroup.mx", "password": "Sistema4"},
+        {"username": "b.martinez@ibsgroup.mx", "password": "Sistema5"},
+        {"username": "auditoria@ibsgroup.mx", "password": "Sistema6"},
+        {"username": "irma.rh@ibsgroup.mx", "password": "Sistema7"},
+        {"username": "alicia.auditoria@ibsgroup.mx", "password": "Sistema8"},
+        {"username": "fernanda.auditoria@ibsgroup.mx", "password": "Sistema9"},
+        {"username": "cesar.enlace@ibsgroup.mx", "password": "Sistema10"},
+        {"username": "daniel.enlace@ibsgroup.mx", "password": "Sistema11"},
+        {"username": "cinthya.operaciones@ibsgroup.mx", "password": "Sistema12"},
+        {"username": "fabiola.operaciones@ibsgroup.mx", "password": "Sistema13"},
+        {"username": "jazmin.operaciones@ibsgroup.mx", "password": "Sistema14"},
+        {"username": "jorge.operaciones@ibsgroup.mx", "password": "Sistema15"},
+        {"username": "arturo.operaciones@ibsgroup.mx", "password": "Sistema16"},
+        {"username": "bry.operaciones@ibsgroup.mx", "password": "Sistema17"},
+    ]
+    
+    for user_data in new_users:
+        existing_user = await users_collection.find_one({"username": user_data["username"]})
         if not existing_user:
-            user = User(username=username, password=username)
+            user = User(username=user_data["username"], password=user_data["password"])
             await users_collection.insert_one(user.dict())
-            print(f"Created user: {username}")
+            print(f"Created user: {user_data['username']}")
 
 # Authentication
 @app.post("/api/auth/login", response_model=LoginResponse)
