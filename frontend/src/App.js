@@ -600,7 +600,7 @@ function App() {
                   <tbody>
                     {transactions.length === 0 ? (
                       <tr>
-                        <td colSpan="13" className="no-data">No hay transacciones</td>
+                        <td colSpan="14" className="no-data">No hay transacciones</td>
                       </tr>
                     ) : (
                       transactions.map((tx) => (
