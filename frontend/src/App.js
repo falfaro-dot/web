@@ -637,6 +637,32 @@ function App() {
                           <td className={tx.comision_estructura < 0 ? 'negative' : ''}>{formatCurrency(tx.comision_estructura)}</td>
                           <td>{formatCurrency(Math.abs(tx.comision_ibsg))}</td>
                           <td><span className="badge">{tx.clasificacion}</span></td>
+                          <td>
+                            <select
+                              className="status-select"
+                              value={tx.estado || 'Enviado'}
+                              onChange={async (e) => {
+                                try {
+                                  const response = await fetch(`${BACKEND_URL}/api/transactions/update_state`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      transaction_id: tx.id,
+                                      estado: e.target.value
+                                    })
+                                  });
+                                  if (response.ok) {
+                                    loadTransactions();
+                                  }
+                                } catch (error) {
+                                  console.error('Error updating state:', error);
+                                }
+                              }}
+                            >
+                              <option value="Enviado">Enviado</option>
+                              <option value="Pagado">Pagado</option>
+                            </select>
+                          </td>
                           <td className="user-cell">{tx.ejecutivo}</td>
                           <td>
                             {!tx.clasificacion.includes('CANCELADA') && tx.total_factura > 0 && (
