@@ -388,6 +388,7 @@ async def cancel_transaction(request: CancelTransactionRequest):
         cancel_tx = Transaction(
             client_id=original_tx["client_id"],
             client_name=original_tx["client_name"],
+            client_rfc=original_tx.get("client_rfc", "N/A"),
             descripcion=f"CANCELACIÓN - {original_tx['descripcion']} - Motivo: {request.motivo}",
             subtotal=-original_tx["subtotal"],
             iva=-original_tx["iva"],
