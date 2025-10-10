@@ -23,7 +23,7 @@ function App() {
   
   // Dashboard state
   const [treasuryBalances, setTreasuryBalances] = useState([]);
-  const [operations Summary, setOperationsSummary] = useState([]);
+  const [operationsSummary, setOperationsSummary] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [searchRFC, setSearchRFC] = useState('');
   const [searchDateStart, setSearchDateStart] = useState('');
