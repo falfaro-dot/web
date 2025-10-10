@@ -6,7 +6,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState('');
-  const [activeView, setActiveView] = useState('dashboard');
+  const [activeView, setActiveView] = useState('upload');
   
   // Login state
   const [username, setUsername] = useState('');
@@ -23,14 +23,10 @@ function App() {
   
   // Dashboard state
   const [treasuryBalances, setTreasuryBalances] = useState([]);
-  const [operations Summary, setOperationsSummary] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [searchRFC, setSearchRFC] = useState('');
+  const [searchClient, setSearchClient] = useState('');
   const [searchDateStart, setSearchDateStart] = useState('');
   const [searchDateEnd, setSearchDateEnd] = useState('');
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [cancelMotivo, setCancelMotivo] = useState('Solicitud del cliente');
   
   // Check login status
   useEffect(() => {
@@ -120,8 +116,8 @@ function App() {
   // Load treasury balances
   const loadTreasuryBalances = async () => {
     try {
-      const url = searchRFC 
-        ? `${BACKEND_URL}/api/dashboard/treasury?rfc=${encodeURIComponent(searchRFC)}`
+      const url = searchClient 
+        ? `${BACKEND_URL}/api/dashboard/treasury?client_name=${encodeURIComponent(searchClient)}`
         : `${BACKEND_URL}/api/dashboard/treasury`;
       
       const response = await fetch(url);
@@ -132,26 +128,11 @@ function App() {
     }
   };
   
-  // Load operations summary
-  const loadOperationsSummary = async () => {
-    try {
-      let url = `${BACKEND_URL}/api/dashboard/operations_summary?`;
-      if (searchDateStart) url += `fecha_inicio=${searchDateStart}T00:00:00Z&`;
-      if (searchDateEnd) url += `fecha_fin=${searchDateEnd}T23:59:59Z&`;
-      
-      const response = await fetch(url);
-      const data = await response.json();
-      setOperationsSummary(data);
-    } catch (error) {
-      console.error('Error loading operations summary:', error);
-    }
-  };
-  
   // Load transactions
   const loadTransactions = async () => {
     try {
       let url = `${BACKEND_URL}/api/dashboard/transactions?`;
-      if (searchRFC) url += `client_name=${encodeURIComponent(searchRFC)}&`;
+      if (searchClient) url += `client_name=${encodeURIComponent(searchClient)}&`;
       if (searchDateStart) url += `fecha_inicio=${searchDateStart}T00:00:00Z&`;
       if (searchDateEnd) url += `fecha_fin=${searchDateEnd}T23:59:59Z&`;
       
@@ -167,41 +148,9 @@ function App() {
   useEffect(() => {
     if (activeView === 'dashboard') {
       loadTreasuryBalances();
-      loadOperationsSummary();
-    } else if (activeView === 'transactions') {
       loadTransactions();
     }
   }, [activeView]);
-  
-  // Cancel transaction
-  const handleCancelTransaction = async () => {
-    if (!selectedTransaction) return;
-    
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/transactions/cancel`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transaction_id: selectedTransaction.id,
-          motivo: cancelMotivo,
-          ejecutivo: currentUser
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        alert('Transacción cancelada exitosamente');
-        loadTransactions();
-        setCancelModalOpen(false);
-        setSelectedTransaction(null);
-      } else {
-        alert('Error cancelando transacción');
-      }
-    } catch (error) {
-      alert('Error de conexión: ' + error.message);
-    }
-  };
   
   // Format currency
   const formatCurrency = (amount) => {
@@ -238,7 +187,7 @@ function App() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="usuario@ibsgroup.mx"
+                placeholder="Ejecutivo1"
                 required
               />
             </div>
@@ -280,22 +229,16 @@ function App() {
       {/* Navigation */}
       <nav className="app-nav">
         <button
-          className={activeView === 'dashboard' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => setActiveView('dashboard')}
-        >
-          📊 Dashboard
-        </button>
-        <button
-          className={activeView === 'transactions' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => setActiveView('transactions')}
-        >
-          📋 Transacciones
-        </button>
-        <button
           className={activeView === 'upload' ? 'nav-btn active' : 'nav-btn'}
           onClick={() => setActiveView('upload')}
         >
           📤 Cargar Archivo
+        </button>
+        <button
+          className={activeView === 'dashboard' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveView('dashboard')}
+        >
+          📊 Dashboard
         </button>
       </nav>
       
@@ -381,12 +324,12 @@ function App() {
               <h2>🔍 Filtros de Búsqueda</h2>
               <div className="filter-row">
                 <div className="form-group">
-                  <label>RFC Cliente</label>
+                  <label>Cliente</label>
                   <input
                     type="text"
-                    placeholder="Buscar por RFC"
-                    value={searchRFC}
-                    onChange={(e) => setSearchRFC(e.target.value)}
+                    placeholder="Buscar por nombre"
+                    value={searchClient}
+                    onChange={(e) => setSearchClient(e.target.value)}
                   />
                 </div>
                 <div className="form-group">
@@ -409,7 +352,7 @@ function App() {
                   className="btn-search"
                   onClick={() => {
                     loadTreasuryBalances();
-                    loadOperationsSummary();
+                    loadTransactions();
                   }}
                 >
                   🔍 Buscar
@@ -439,7 +382,6 @@ function App() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>RFC</th>
                       <th>Cliente</th>
                       <th>Balance Actual</th>
                       <th>Última Actualización</th>
@@ -448,12 +390,11 @@ function App() {
                   <tbody>
                     {treasuryBalances.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="no-data">No hay datos de tesorería</td>
+                        <td colSpan="3" className="no-data">No hay datos de tesorería</td>
                       </tr>
                     ) : (
                       treasuryBalances.map((balance) => (
                         <tr key={balance.client_id}>
-                          <td className="rfc-cell">{balance.client_rfc || 'N/A'}</td>
                           <td>{balance.client_name}</td>
                           <td className={balance.balance >= 0 ? 'positive' : 'negative'}>
                             {formatCurrency(balance.balance)}
@@ -467,90 +408,11 @@ function App() {
               </div>
             </div>
             
-            {/* Operations Summary */}
-            <div className="section-card">
-              <h2>📊 Resumen de Operaciones por Cliente</h2>
-              <div className="table-container">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>RFC</th>
-                      <th>Cliente</th>
-                      <th>Transacciones</th>
-                      <th>Total Facturado</th>
-                      <th>Comisiones</th>
-                      <th>Retornos</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {operationsSummary.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" className="no-data">No hay datos de operaciones</td>
-                      </tr>
-                    ) : (
-                      operationsSummary.map((op, idx) => (
-                        <tr key={idx}>
-                          <td className="rfc-cell">{op.rfc}</td>
-                          <td>{op.client_name}</td>
-                          <td className="centered">{op.transaction_count}</td>
-                          <td>{formatCurrency(op.total_facturado)}</td>
-                          <td>{formatCurrency(op.total_comisiones)}</td>
-                          <td>{formatCurrency(op.total_retornos)}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {activeView === 'transactions' && (
-          <div className="transactions-section">
-            {/* Search Filters */}
-            <div className="section-card">
-              <h2>🔍 Filtros de Búsqueda</h2>
-              <div className="filter-row">
-                <div className="form-group">
-                  <label>RFC/Cliente</label>
-                  <input
-                    type="text"
-                    placeholder="Buscar por RFC o nombre"
-                    value={searchRFC}
-                    onChange={(e) => setSearchRFC(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Fecha Inicio</label>
-                  <input
-                    type="date"
-                    value={searchDateStart}
-                    onChange={(e) => setSearchDateStart(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Fecha Fin</label>
-                  <input
-                    type="date"
-                    value={searchDateEnd}
-                    onChange={(e) => setSearchDateEnd(e.target.value)}
-                  />
-                </div>
-                <button
-                  className="btn-search"
-                  onClick={loadTransactions}
-                >
-                  🔍 Buscar
-                </button>
-              </div>
-            </div>
-            
-            {/* Transactions Table */}
+            {/* Transactions */}
             <div className="section-card">
               <h2>📋 Historial de Transacciones</h2>
               <div className="table-container">
-                <table className="data-table transactions-table">
+                <table className="data-table">
                   <thead>
                     <tr>
                       <th>Fecha</th>
@@ -560,47 +422,29 @@ function App() {
                       <th>IVA</th>
                       <th>Total Factura</th>
                       <th>Comisión 1</th>
-                      <th>Retorno 1</th>
-                      <th>Comisión Estructura</th>
-                      <th>Comisión IBSG</th>
+                      <th>Retorno 2</th>
                       <th>Clasificación</th>
-                      <th>Usuario</th>
-                      <th>Acciones</th>
+                      <th>Ejecutivo</th>
                     </tr>
                   </thead>
                   <tbody>
                     {transactions.length === 0 ? (
                       <tr>
-                        <td colSpan="13" className="no-data">No hay transacciones</td>
+                        <td colSpan="10" className="no-data">No hay transacciones</td>
                       </tr>
                     ) : (
                       transactions.map((tx) => (
-                        <tr key={tx.id} className={tx.total_factura < 0 ? 'cancelled-row' : ''}>
+                        <tr key={tx.id}>
                           <td>{formatDate(tx.fecha)}</td>
                           <td>{tx.client_name}</td>
                           <td className="description-cell">{tx.descripcion}</td>
-                          <td className={tx.subtotal < 0 ? 'negative' : ''}>{formatCurrency(tx.subtotal)}</td>
-                          <td className={tx.iva < 0 ? 'negative' : ''}>{formatCurrency(tx.iva)}</td>
-                          <td className={tx.total_factura < 0 ? 'negative' : ''}>{formatCurrency(tx.total_factura)}</td>
-                          <td className={tx.comision_1 < 0 ? 'negative' : ''}>{formatCurrency(tx.comision_1)}</td>
-                          <td className={tx.retorno_1 < 0 ? 'negative' : ''}>{formatCurrency(tx.retorno_1)}</td>
-                          <td className={tx.comision_estructura < 0 ? 'negative' : ''}>{formatCurrency(tx.comision_estructura)}</td>
-                          <td className={tx.comision_ibsg < 0 ? 'negative' : ''}>{formatCurrency(tx.comision_ibsg)}</td>
+                          <td>{formatCurrency(tx.subtotal)}</td>
+                          <td>{formatCurrency(tx.iva)}</td>
+                          <td>{formatCurrency(tx.total_factura)}</td>
+                          <td>{formatCurrency(tx.comision_1)}</td>
+                          <td>{formatCurrency(tx.retorno_2)}</td>
                           <td><span className="badge">{tx.clasificacion}</span></td>
-                          <td className="user-cell">{tx.ejecutivo}</td>
-                          <td>
-                            {!tx.clasificacion.includes('CANCELADA') && tx.total_factura > 0 && (
-                              <button
-                                className="btn-cancel"
-                                onClick={() => {
-                                  setSelectedTransaction(tx);
-                                  setCancelModalOpen(true);
-                                }}
-                              >
-                                ❌
-                              </button>
-                            )}
-                          </td>
+                          <td>{tx.ejecutivo}</td>
                         </tr>
                       ))
                     )}
@@ -611,40 +455,6 @@ function App() {
           </div>
         )}
       </main>
-      
-      {/* Cancel Modal */}
-      {cancelModalOpen && (
-        <div className="modal-overlay" onClick={() => setCancelModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>⚠️ Cancelar Transacción</h2>
-            <p>¿Está seguro de que desea cancelar esta transacción?</p>
-            <p className="modal-info"><strong>Cliente:</strong> {selectedTransaction?.client_name}</p>
-            <p className="modal-info"><strong>Total:</strong> {formatCurrency(selectedTransaction?.total_factura || 0)}</p>
-            
-            <div className="form-group">
-              <label>Motivo de Cancelación</label>
-              <select
-                value={cancelMotivo}
-                onChange={(e) => setCancelMotivo(e.target.value)}
-                className="modal-select"
-              >
-                <option value="Solicitud del cliente">Solicitud del cliente</option>
-                <option value="Solicitud de Dirección">Solicitud de Dirección</option>
-                <option value="Falta de fondeo">Falta de fondeo</option>
-              </select>
-            </div>
-            
-            <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setCancelModalOpen(false)}>
-                Cerrar
-              </button>
-              <button className="btn-danger" onClick={handleCancelTransaction}>
-                Confirmar Cancelación
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       
       {/* Footer */}
       <footer className="app-footer">
