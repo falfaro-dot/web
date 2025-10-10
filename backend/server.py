@@ -102,8 +102,13 @@ class Transaction(BaseModel):
     comision_ibsg: float
     retorno_2: float
     clasificacion: str
+    estado: str = "Enviado"  # Default state
     fecha: str
     ejecutivo: str
+
+class UpdateTransactionStateRequest(BaseModel):
+    transaction_id: str
+    estado: str
 
 class TreasuryBalance(BaseModel):
     client_id: str
