@@ -164,11 +164,27 @@ function App() {
     }
   };
   
+  // Load dashboard transactions for calculations
+  const loadDashboardTransactions = async () => {
+    try {
+      let url = `${BACKEND_URL}/api/dashboard/transactions?`;
+      if (searchDateStart) url += `fecha_inicio=${searchDateStart}T00:00:00Z&`;
+      if (searchDateEnd) url += `fecha_fin=${searchDateEnd}T23:59:59Z&`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      setDashboardTransactions(data);
+    } catch (error) {
+      console.error('Error loading dashboard transactions:', error);
+    }
+  };
+  
   // Load dashboard data when view changes
   useEffect(() => {
     if (activeView === 'dashboard') {
       loadTreasuryBalances();
       loadOperationsSummary();
+      loadDashboardTransactions();
     } else if (activeView === 'transactions') {
       loadTransactions();
     }
