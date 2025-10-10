@@ -261,6 +261,7 @@ async def upload_file(
         transaction = Transaction(
             client_id=client_id,
             client_name=client_data["cliente"],
+            client_rfc=client_data["rfc"],
             descripcion=result["descripcion"],
             subtotal=result["financial_data"]["subtotal"],
             iva=result["financial_data"]["iva"],
