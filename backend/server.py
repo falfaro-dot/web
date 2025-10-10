@@ -89,6 +89,7 @@ class Transaction(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_id: str
     client_name: str
+    client_rfc: str
     descripcion: str
     subtotal: float
     iva: float
