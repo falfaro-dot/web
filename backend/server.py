@@ -485,6 +485,160 @@ async def get_operations_summary(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generando resumen: {str(e)}")
 
+@app.get("/api/export/transactions/xlsx")
+async def export_transactions_xlsx(
+    client_name: Optional[str] = None,
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None
+):
+    """Export transactions to Excel file"""
+    try:
+        # Build query
+        query = {}
+        if client_name:
+            query["client_name"] = {"$regex": client_name, "$options": "i"}
+        if fecha_inicio and fecha_fin:
+            query["fecha"] = {"$gte": fecha_inicio, "$lte": fecha_fin}
+        
+        # Get transactions
+        transactions = await db.transactions.find(query).sort("fecha", -1).to_list(length=None)
+        
+        # Create workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Transacciones"
+        
+        # Define headers
+        headers = [
+            "Fecha", "Cliente", "RFC", "Descripción", "Subtotal", "IVA", 
+            "Total Factura", "Comisión 1", "Retorno 1", "Comisión Estructura", 
+            "Comisión IBSG", "Clasificación", "Usuario"
+        ]
+        
+        # Style for headers
+        header_fill = PatternFill(start_color="C5B77D", end_color="C5B77D", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        # Write headers
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center")
+        
+        # Write data
+        for row_num, tx in enumerate(transactions, 2):
+            # Get client RFC
+            client = await db.clients.find_one({"id": tx["client_id"]})
+            client_rfc = client["rfc"] if client else "N/A"
+            
+            ws.cell(row=row_num, column=1, value=tx["fecha"])
+            ws.cell(row=row_num, column=2, value=tx["client_name"])
+            ws.cell(row=row_num, column=3, value=client_rfc)
+            ws.cell(row=row_num, column=4, value=tx["descripcion"])
+            ws.cell(row=row_num, column=5, value=tx["subtotal"])
+            ws.cell(row=row_num, column=6, value=tx["iva"])
+            ws.cell(row=row_num, column=7, value=tx["total_factura"])
+            ws.cell(row=row_num, column=8, value=tx["comision_1"])
+            ws.cell(row=row_num, column=9, value=tx["retorno_1"])
+            ws.cell(row=row_num, column=10, value=tx["comision_estructura"])
+            ws.cell(row=row_num, column=11, value=abs(tx["comision_ibsg"]))  # Absolute value
+            ws.cell(row=row_num, column=12, value=tx["clasificacion"])
+            ws.cell(row=row_num, column=13, value=tx["ejecutivo"])
+            
+            # Apply red color for cancelled transactions
+            if tx["total_factura"] < 0:
+                for col in range(1, 14):
+                    ws.cell(row=row_num, column=col).font = Font(color="FF0000")
+        
+        # Adjust column widths
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column].width = adjusted_width
+        
+        # Save to bytes
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        # Return as streaming response
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=transacciones.xlsx"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
+
+@app.get("/api/export/transactions/csv")
+async def export_transactions_csv(
+    client_name: Optional[str] = None,
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None
+):
+    """Export transactions to CSV file"""
+    try:
+        # Build query
+        query = {}
+        if client_name:
+            query["client_name"] = {"$regex": client_name, "$options": "i"}
+        if fecha_inicio and fecha_fin:
+            query["fecha"] = {"$gte": fecha_inicio, "$lte": fecha_fin}
+        
+        # Get transactions
+        transactions = await db.transactions.find(query).sort("fecha", -1).to_list(length=None)
+        
+        # Create CSV in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write headers
+        writer.writerow([
+            "Fecha", "Cliente", "RFC", "Descripción", "Subtotal", "IVA",
+            "Total Factura", "Comisión 1", "Retorno 1", "Comisión Estructura",
+            "Comisión IBSG", "Clasificación", "Usuario"
+        ])
+        
+        # Write data
+        for tx in transactions:
+            # Get client RFC
+            client = await db.clients.find_one({"id": tx["client_id"]})
+            client_rfc = client["rfc"] if client else "N/A"
+            
+            writer.writerow([
+                tx["fecha"],
+                tx["client_name"],
+                client_rfc,
+                tx["descripcion"],
+                tx["subtotal"],
+                tx["iva"],
+                tx["total_factura"],
+                tx["comision_1"],
+                tx["retorno_1"],
+                tx["comision_estructura"],
+                abs(tx["comision_ibsg"]),  # Absolute value
+                tx["clasificacion"],
+                tx["ejecutivo"]
+            ])
+        
+        # Convert to bytes
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=transacciones.csv"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "message": "Treasury Management System API"}
