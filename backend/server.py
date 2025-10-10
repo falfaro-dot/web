@@ -476,6 +476,15 @@ async def get_operations_summary(
             summary_dict[client_id]["total_facturado"] += tx["total_factura"]
             summary_dict[client_id]["total_comisiones"] += tx["comision_1"]
             summary_dict[client_id]["total_retornos"] += tx["retorno_1"]
+            
+            # Add separated commissions
+            if "total_comision_estructura" not in summary_dict[client_id]:
+                summary_dict[client_id]["total_comision_estructura"] = 0.0
+            if "total_comision_ibsg" not in summary_dict[client_id]:
+                summary_dict[client_id]["total_comision_ibsg"] = 0.0
+            
+            summary_dict[client_id]["total_comision_estructura"] += tx["comision_estructura"]
+            summary_dict[client_id]["total_comision_ibsg"] += abs(tx["comision_ibsg"])
         
         # Convert to list and round values
         summary_list = []
