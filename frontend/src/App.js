@@ -612,6 +612,7 @@ function App() {
                       <th>Comisión Estructura</th>
                       <th>Comisión IBSG</th>
                       <th>Clasificación</th>
+                      <th>Estado</th>
                       <th>Usuario</th>
                       <th>Acciones</th>
                     </tr>
