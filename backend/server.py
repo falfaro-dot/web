@@ -531,13 +531,15 @@ async def export_transactions_xlsx(
         
         # Write data
         for row_num, tx in enumerate(transactions, 2):
-            # Get client RFC
-            client = await db.clients.find_one({"id": tx["client_id"]})
-            client_rfc = client["rfc"] if client else "N/A"
+            # Get client RFC from transaction or client collection
+            client_rfc = tx.get("client_rfc")
+            if not client_rfc:
+                client = await db.clients.find_one({"id": tx["client_id"]})
+                client_rfc = client["rfc"] if client else "N/A"
             
             ws.cell(row=row_num, column=1, value=tx["fecha"])
-            ws.cell(row=row_num, column=2, value=tx["client_name"])
-            ws.cell(row=row_num, column=3, value=client_rfc)
+            ws.cell(row=row_num, column=2, value=client_rfc)
+            ws.cell(row=row_num, column=3, value=tx["client_name"])
             ws.cell(row=row_num, column=4, value=tx["descripcion"])
             ws.cell(row=row_num, column=5, value=tx["subtotal"])
             ws.cell(row=row_num, column=6, value=tx["iva"])
