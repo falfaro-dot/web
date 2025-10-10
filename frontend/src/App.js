@@ -25,6 +25,7 @@ function App() {
   const [treasuryBalances, setTreasuryBalances] = useState([]);
   const [operationsSummary, setOperationsSummary] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [dashboardTransactions, setDashboardTransactions] = useState([]);
   const [searchRFC, setSearchRFC] = useState('');
   const [searchDateStart, setSearchDateStart] = useState('');
   const [searchDateEnd, setSearchDateEnd] = useState('');
