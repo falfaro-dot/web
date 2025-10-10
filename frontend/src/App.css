@@ -466,6 +466,27 @@ body {
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
+/* Status Select */
+.status-select {
+  padding: 6px 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.status-select:hover {
+  border-color: #C5B77D;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: #C5B77D;
+  box-shadow: 0 0 0 3px rgba(197, 183, 125, 0.1);
+}
+
 /* Cancel Button */
 .btn-cancel {
   background: transparent;
