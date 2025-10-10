@@ -427,6 +427,7 @@ function App() {
                   onClick={() => {
                     loadTreasuryBalances();
                     loadOperationsSummary();
+                    loadDashboardTransactions();
                   }}
                 >
                   🔍 Buscar
