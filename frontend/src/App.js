@@ -494,13 +494,15 @@ function App() {
                       <th>Transacciones</th>
                       <th>Total Facturado</th>
                       <th>Comisiones</th>
+                      <th>Comisión Estructura</th>
+                      <th>Comisión IBSG</th>
                       <th>Retornos</th>
                     </tr>
                   </thead>
                   <tbody>
                     {operationsSummary.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="no-data">No hay datos de operaciones</td>
+                        <td colSpan="8" className="no-data">No hay datos de operaciones</td>
                       </tr>
                     ) : (
                       operationsSummary.map((op, idx) => (
@@ -510,6 +512,8 @@ function App() {
                           <td className="centered">{op.transaction_count}</td>
                           <td>{formatCurrency(op.total_facturado)}</td>
                           <td>{formatCurrency(op.total_comisiones)}</td>
+                          <td>{formatCurrency(op.total_comision_estructura || 0)}</td>
+                          <td>{formatCurrency(op.total_comision_ibsg || 0)}</td>
                           <td>{formatCurrency(op.total_retornos)}</td>
                         </tr>
                       ))
