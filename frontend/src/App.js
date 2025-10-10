@@ -432,6 +432,21 @@ function App() {
               </div>
             </div>
             
+            {/* IBSG Commissions Total */}
+            <div className="total-card total-card-secondary">
+              <div className="total-content">
+                <div className="total-label">
+                  <span className="total-icon">💰</span>
+                  <span>Total Comisiones IBSG</span>
+                </div>
+                <div className="total-amount">
+                  {formatCurrency(
+                    operationsSummary.reduce((sum, op) => sum + (op.total_comision_ibsg || 0), 0)
+                  )}
+                </div>
+              </div>
+            </div>
+            
             {/* Treasury Balances */}
             <div className="section-card">
               <h2>💰 Balance de Tesorería por Cliente</h2>
