@@ -320,14 +320,27 @@ async def upload_file(
 
 # Dashboard Endpoints
 @app.get("/api/dashboard/treasury")
-async def get_treasury_balances(client_name: Optional[str] = None):
-    """Get treasury balances for all clients or filtered by client name"""
+async def get_treasury_balances(rfc: Optional[str] = None):
+    """Get treasury balances for all clients or filtered by RFC"""
     query = {}
-    if client_name:
-        query["client_name"] = {"$regex": client_name, "$options": "i"}
+    
+    if rfc:
+        # Find client by RFC
+        client = await db.clients.find_one({"rfc": {"$regex": rfc, "$options": "i"}})
+        if client:
+            query["client_id"] = client["id"]
     
     balances = await db.treasury_balances.find(query).to_list(length=None)
-    return serialize_doc(balances)
+    
+    # Enrich with RFC data
+    enriched_balances = []
+    for balance in balances:
+        client = await db.clients.find_one({"id": balance["client_id"]})
+        if client:
+            balance["client_rfc"] = client["rfc"]
+        enriched_balances.append(balance)
+    
+    return serialize_doc(enriched_balances)
 
 @app.get("/api/dashboard/transactions")
 async def get_transactions(
