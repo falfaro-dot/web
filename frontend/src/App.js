@@ -613,7 +613,7 @@ function App() {
                           <td className={tx.comision_1 < 0 ? 'negative' : ''}>{formatCurrency(tx.comision_1)}</td>
                           <td className={tx.retorno_1 < 0 ? 'negative' : ''}>{formatCurrency(tx.retorno_1)}</td>
                           <td className={tx.comision_estructura < 0 ? 'negative' : ''}>{formatCurrency(tx.comision_estructura)}</td>
-                          <td className={tx.comision_ibsg < 0 ? 'negative' : ''}>{formatCurrency(tx.comision_ibsg)}</td>
+                          <td>{formatCurrency(Math.abs(tx.comision_ibsg))}</td>
                           <td><span className="badge">{tx.clasificacion}</span></td>
                           <td className="user-cell">{tx.ejecutivo}</td>
                           <td>
