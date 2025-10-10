@@ -666,6 +666,7 @@ async def export_transactions_csv(
                 tx["comision_estructura"],
                 abs(tx["comision_ibsg"]),  # Absolute value
                 tx["clasificacion"],
+                tx.get("estado", "Enviado"),
                 tx["ejecutivo"]
             ])
         
