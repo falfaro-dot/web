@@ -614,14 +614,16 @@ async def export_transactions_csv(
         
         # Write data
         for tx in transactions:
-            # Get client RFC
-            client = await db.clients.find_one({"id": tx["client_id"]})
-            client_rfc = client["rfc"] if client else "N/A"
+            # Get client RFC from transaction or client collection
+            client_rfc = tx.get("client_rfc")
+            if not client_rfc:
+                client = await db.clients.find_one({"id": tx["client_id"]})
+                client_rfc = client["rfc"] if client else "N/A"
             
             writer.writerow([
                 tx["fecha"],
-                tx["client_name"],
                 client_rfc,
+                tx["client_name"],
                 tx["descripcion"],
                 tx["subtotal"],
                 tx["iva"],
