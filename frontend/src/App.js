@@ -230,7 +230,7 @@ function App() {
           <div className="logo-container">
             <img src="https://customer-assets.emergentagent.com/job_finance-parser-4/artifacts/zggp8w9v_logo2.jpg" alt="IBS Group" className="logo" />
           </div>
-          <h1>Sistema de Gestión de Tesorería</h1>
+          <h1>Sistema de Registro de Operaciones</h1>
           <form onSubmit={handleLogin}>
             <div className="form-group">
               <label>Usuario</label>
