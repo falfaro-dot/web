@@ -517,7 +517,21 @@ function App() {
             
             {/* Treasury Balances */}
             <div className="section-card">
-              <h2>💰 Balance de Tesorería por Cliente</h2>
+              <div className="transactions-header">
+                <h2>💰 Balance de Tesorería por Cliente</h2>
+                <div className="export-buttons">
+                  <button
+                    className="btn-export"
+                    onClick={() => {
+                      let url = `${BACKEND_URL}/api/export/treasury/xlsx?`;
+                      if (searchRFC) url += `rfc=${encodeURIComponent(searchRFC)}&`;
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    📥 Descargar Excel
+                  </button>
+                </div>
+              </div>
               <div className="table-container">
                 <table className="data-table">
                   <thead>
