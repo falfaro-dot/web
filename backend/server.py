@@ -547,6 +547,38 @@ async def update_transaction_fondeado(request: UpdateTransactionFondeadoRequest)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error actualizando fondeado: {str(e)}")
 
+@app.post("/api/admin/delete_data")
+async def delete_data_by_date_range(request: DeleteDataRequest):
+    """Delete transactions by date range - Admin only"""
+    # Authorized users
+    authorized_users = {
+        "f.alfaro@ibsgroup.mx": "System3ras3$0",
+        "administracion@ibsgroup.mx": "System3ras3$!"
+    }
+    
+    # Verify credentials
+    if request.username not in authorized_users or authorized_users[request.username] != request.password:
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    try:
+        # Delete transactions in date range
+        query = {
+            "fecha": {
+                "$gte": request.fecha_inicio,
+                "$lte": request.fecha_fin
+            }
+        }
+        
+        result = await db.transactions.delete_many(query)
+        
+        return {
+            "success": True,
+            "message": f"{result.deleted_count} transacciones eliminadas",
+            "deleted_count": result.deleted_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error eliminando datos: {str(e)}")
+
 @app.get("/api/export/transactions/xlsx")
 async def export_transactions_xlsx(
     client_name: Optional[str] = None,
