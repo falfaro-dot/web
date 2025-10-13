@@ -600,6 +600,20 @@ body {
   font-size: 15px;
 }
 
+.modal-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.warning-text {
+  color: #f44336;
+  font-weight: 600;
+  margin: 10px 0;
+}
+
 .modal-actions {
   display: flex;
   gap: 15px;
