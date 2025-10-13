@@ -195,6 +195,52 @@ function App() {
     }
   }, [activeView]);
   
+  // Delete data by date range
+  const handleDeleteData = async () => {
+    if (!deleteDateStart || !deleteDateEnd) {
+      alert('Por favor seleccione ambas fechas');
+      return;
+    }
+    
+    if (!deleteUsername || !deletePassword) {
+      alert('Por favor ingrese usuario y contraseña');
+      return;
+    }
+    
+    if (!window.confirm('⚠️ ADVERTENCIA: Esta acción eliminará permanentemente todas las transacciones en el rango de fechas seleccionado. ¿Está seguro?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/admin/delete_data`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: deleteUsername,
+          password: deletePassword,
+          fecha_inicio: deleteDateStart + 'T00:00:00Z',
+          fecha_fin: deleteDateEnd + 'T23:59:59Z'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        alert(`✓ ${data.deleted_count} transacciones eliminadas exitosamente`);
+        setDeleteModalOpen(false);
+        setDeleteUsername('');
+        setDeletePassword('');
+        setDeleteDateStart('');
+        setDeleteDateEnd('');
+        loadTransactions();
+      } else {
+        alert('✗ ' + data.detail || 'Error eliminando datos');
+      }
+    } catch (error) {
+      alert('✗ Error de conexión: ' + error.message);
+    }
+  };
+  
   // Cancel transaction
   const handleCancelTransaction = async () => {
     if (!selectedTransaction) return;
