@@ -546,6 +546,11 @@ body {
 }
 
 .status-pendiente {
+  color: #f44336 !important;
+  font-weight: 600;
+}
+
+.status-pendiente option[value="Pendiente"] {
   color: #f44336;
   font-weight: 600;
 }
