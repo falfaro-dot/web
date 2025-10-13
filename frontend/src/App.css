@@ -545,6 +545,11 @@ body {
   box-shadow: 0 0 0 3px rgba(197, 183, 125, 0.1);
 }
 
+.status-pendiente {
+  color: #f44336;
+  font-weight: 600;
+}
+
 /* Cancel Button */
 .btn-cancel {
   background: transparent;
