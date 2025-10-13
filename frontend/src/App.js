@@ -903,6 +903,68 @@ function App() {
         </div>
       )}
       
+      {/* Delete Data Modal */}
+      {deleteModalOpen && (
+        <div className="modal-overlay" onClick={() => setDeleteModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>🗑️ Borrar Datos por Rango de Fechas</h2>
+            <p className="warning-text">⚠️ ADVERTENCIA: Esta acción es permanente y no se puede deshacer.</p>
+            <p className="modal-info">Solo usuarios autorizados pueden realizar esta acción.</p>
+            
+            <div className="form-group">
+              <label>Usuario Autorizado</label>
+              <input
+                type="text"
+                value={deleteUsername}
+                onChange={(e) => setDeleteUsername(e.target.value)}
+                placeholder="usuario@ibsgroup.mx"
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Contraseña</label>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="••••••••"
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Fecha Inicio</label>
+              <input
+                type="date"
+                value={deleteDateStart}
+                onChange={(e) => setDeleteDateStart(e.target.value)}
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Fecha Fin</label>
+              <input
+                type="date"
+                value={deleteDateEnd}
+                onChange={(e) => setDeleteDateEnd(e.target.value)}
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setDeleteModalOpen(false)}>
+                Cancelar
+              </button>
+              <button className="btn-danger" onClick={handleDeleteData}>
+                Borrar Datos
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Footer */}
       <footer className="app-footer">
         <p>© 2025 IBS Group - Integra Business Solutions</p>
