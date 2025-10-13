@@ -126,6 +126,12 @@ class CancelTransactionRequest(BaseModel):
     motivo: str
     ejecutivo: str
 
+class DeleteDataRequest(BaseModel):
+    username: str
+    password: str
+    fecha_inicio: str
+    fecha_fin: str
+
 # Initialize default users
 @app.on_event("startup")
 async def startup_event():
