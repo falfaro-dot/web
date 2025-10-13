@@ -717,6 +717,32 @@ function App() {
                               <option value="Pagado">Pagado</option>
                             </select>
                           </td>
+                          <td>
+                            <select
+                              className="status-select"
+                              value={tx.fondeado || 'Pendiente'}
+                              onChange={async (e) => {
+                                try {
+                                  const response = await fetch(`${BACKEND_URL}/api/transactions/update_fondeado`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      transaction_id: tx.id,
+                                      fondeado: e.target.value
+                                    })
+                                  });
+                                  if (response.ok) {
+                                    loadTransactions();
+                                  }
+                                } catch (error) {
+                                  console.error('Error updating fondeado:', error);
+                                }
+                              }}
+                            >
+                              <option value="Pendiente">Pendiente</option>
+                              <option value="Pagado">Pagado</option>
+                            </select>
+                          </td>
                           <td className="user-cell">{tx.ejecutivo}</td>
                           <td>
                             {!tx.clasificacion.includes('CANCELADA') && tx.total_factura > 0 && (
