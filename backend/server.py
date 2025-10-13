@@ -525,6 +525,22 @@ async def update_transaction_state(request: UpdateTransactionStateRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error actualizando estado: {str(e)}")
 
+@app.post("/api/transactions/update_fondeado")
+async def update_transaction_fondeado(request: UpdateTransactionFondeadoRequest):
+    """Update transaction fondeado status"""
+    try:
+        result = await db.transactions.update_one(
+            {"id": request.transaction_id},
+            {"$set": {"fondeado": request.fondeado}}
+        )
+        
+        if result.modified_count > 0:
+            return {"success": True, "message": "Fondeado actualizado"}
+        else:
+            raise HTTPException(status_code=404, detail="Transacción no encontrada")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error actualizando fondeado: {str(e)}")
+
 @app.get("/api/export/transactions/xlsx")
 async def export_transactions_xlsx(
     client_name: Optional[str] = None,
