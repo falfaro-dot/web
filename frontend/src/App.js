@@ -742,6 +742,12 @@ function App() {
                   >
                     📥 Descargar CSV
                   </button>
+                  <button
+                    className="btn-delete"
+                    onClick={() => setDeleteModalOpen(true)}
+                  >
+                    🗑️ Borrar Datos
+                  </button>
                 </div>
               </div>
               <div className="table-container">
