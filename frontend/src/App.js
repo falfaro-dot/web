@@ -820,7 +820,7 @@ function App() {
                           </td>
                           <td>
                             <select
-                              className="status-select"
+                              className={`status-select ${(tx.fondeado || 'Pendiente') === 'Pendiente' ? 'status-pendiente' : ''}`}
                               value={tx.fondeado || 'Pendiente'}
                               onChange={async (e) => {
                                 try {
