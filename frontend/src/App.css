@@ -505,6 +505,25 @@ body {
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
+.btn-delete {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-delete:hover {
+  background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
 /* Status Select */
 .status-select {
   padding: 6px 10px;
