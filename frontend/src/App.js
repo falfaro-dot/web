@@ -32,6 +32,11 @@ function App() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [cancelMotivo, setCancelMotivo] = useState('Solicitud del cliente');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteUsername, setDeleteUsername] = useState('');
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteDateStart, setDeleteDateStart] = useState('');
+  const [deleteDateEnd, setDeleteDateEnd] = useState('');
   
   // Check login status
   useEffect(() => {
