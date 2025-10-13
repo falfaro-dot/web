@@ -741,6 +741,147 @@ async def export_transactions_csv(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
 
+@app.get("/api/export/treasury/xlsx")
+async def export_treasury_xlsx(rfc: Optional[str] = None):
+    """Export treasury balances to Excel"""
+    try:
+        query = {}
+        if rfc:
+            client = await db.clients.find_one({"rfc": {"$regex": rfc, "$options": "i"}})
+            if client:
+                query["client_id"] = client["id"]
+        
+        balances = await db.treasury_balances.find(query).to_list(length=None)
+        
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Balance Tesorería"
+        
+        headers = ["RFC", "Cliente", "Balance Actual", "Última Actualización"]
+        header_fill = PatternFill(start_color="C5B77D", end_color="C5B77D", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center")
+        
+        for row_num, balance in enumerate(balances, 2):
+            client = await db.clients.find_one({"id": balance["client_id"]})
+            ws.cell(row=row_num, column=1, value=client["rfc"] if client else "N/A")
+            ws.cell(row=row_num, column=2, value=balance["client_name"])
+            ws.cell(row=row_num, column=3, value=balance["balance"])
+            ws.cell(row=row_num, column=4, value=balance["last_updated"])
+        
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column].width = adjusted_width
+        
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=balance_tesoreria.xlsx"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
+
+@app.get("/api/export/operations_summary/xlsx")
+async def export_operations_summary_xlsx(
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None
+):
+    """Export operations summary to Excel"""
+    try:
+        query = {}
+        if fecha_inicio and fecha_fin:
+            query["fecha"] = {"$gte": fecha_inicio, "$lte": fecha_fin}
+        
+        transactions = await db.transactions.find(query).to_list(length=None)
+        
+        summary_dict = {}
+        for tx in transactions:
+            client_id = tx["client_id"]
+            if client_id not in summary_dict:
+                client = await db.clients.find_one({"id": client_id})
+                summary_dict[client_id] = {
+                    "rfc": client["rfc"] if client else tx.get("client_rfc", "N/A"),
+                    "client_name": tx["client_name"],
+                    "transaction_count": 0,
+                    "total_facturado": 0.0,
+                    "total_comisiones": 0.0,
+                    "total_comision_estructura": 0.0,
+                    "total_comision_ibsg": 0.0,
+                    "total_retornos": 0.0
+                }
+            
+            summary_dict[client_id]["transaction_count"] += 1
+            summary_dict[client_id]["total_facturado"] += tx["total_factura"]
+            summary_dict[client_id]["total_comisiones"] += tx["comision_1"]
+            summary_dict[client_id]["total_comision_estructura"] += tx["comision_estructura"]
+            summary_dict[client_id]["total_comision_ibsg"] += abs(tx["comision_ibsg"])
+            summary_dict[client_id]["total_retornos"] += tx["retorno_1"]
+        
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Resumen Operaciones"
+        
+        headers = ["RFC", "Cliente", "Transacciones", "Total Facturado", "Comisiones", "Comisión Estructura", "Comisión IBSG", "Retornos"]
+        header_fill = PatternFill(start_color="C5B77D", end_color="C5B77D", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center")
+        
+        for row_num, (client_id, data) in enumerate(summary_dict.items(), 2):
+            ws.cell(row=row_num, column=1, value=data["rfc"])
+            ws.cell(row=row_num, column=2, value=data["client_name"])
+            ws.cell(row=row_num, column=3, value=data["transaction_count"])
+            ws.cell(row=row_num, column=4, value=round(data["total_facturado"], 2))
+            ws.cell(row=row_num, column=5, value=round(data["total_comisiones"], 2))
+            ws.cell(row=row_num, column=6, value=round(data["total_comision_estructura"], 2))
+            ws.cell(row=row_num, column=7, value=round(data["total_comision_ibsg"], 2))
+            ws.cell(row=row_num, column=8, value=round(data["total_retornos"], 2))
+        
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column].width = adjusted_width
+        
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=resumen_operaciones.xlsx"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "message": "Sistema de Registro de Operaciones API"}
