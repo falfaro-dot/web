@@ -450,24 +450,39 @@ function App() {
               </div>
             </div>
             
-            {/* IBSG Commissions Total */}
-            <div className="total-card total-card-secondary">
-              <div className="total-content">
-                <div className="total-label">
-                  <span className="total-icon">💰</span>
-                  <span>Total Comisiones IBSG</span>
-                </div>
-                <div className="total-amount">
-                  {formatCurrency(
-                    operationsSummary.reduce((sum, op) => sum + (op.total_comision_ibsg || 0), 0)
-                  )}
+            {/* Grid 2x2 Totalizers */}
+            <div className="totals-grid-2x2">
+              <div className="total-card total-card-grid">
+                <div className="total-content">
+                  <div className="total-label">
+                    <span className="total-icon">💰</span>
+                    <span>Total Comisiones IBSG</span>
+                  </div>
+                  <div className="total-amount">
+                    {formatCurrency(
+                      operationsSummary.reduce((sum, op) => sum + (op.total_comision_ibsg || 0), 0)
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Returns by Status */}
-            <div className="totals-row">
-              <div className="total-card total-card-secondary total-card-small">
+              
+              <div className="total-card total-card-grid">
+                <div className="total-content">
+                  <div className="total-label">
+                    <span className="total-icon">💵</span>
+                    <span>Total de Financiados</span>
+                  </div>
+                  <div className="total-amount">
+                    {formatCurrency(
+                      dashboardTransactions
+                        .filter(tx => tx.estado === 'Pagado' && (tx.fondeado || 'Pendiente') === 'Pendiente')
+                        .reduce((sum, tx) => sum + tx.retorno_1, 0)
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="total-card total-card-grid">
                 <div className="total-content">
                   <div className="total-label">
                     <span className="total-icon">📤</span>
@@ -483,7 +498,7 @@ function App() {
                 </div>
               </div>
               
-              <div className="total-card total-card-secondary total-card-small">
+              <div className="total-card total-card-grid">
                 <div className="total-content">
                   <div className="total-label">
                     <span className="total-icon">✅</span>
