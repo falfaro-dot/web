@@ -103,12 +103,17 @@ class Transaction(BaseModel):
     retorno_2: float
     clasificacion: str
     estado: str = "Enviado"  # Default state
+    fondeado: str = "Pendiente"  # Default funding state
     fecha: str
     ejecutivo: str
 
 class UpdateTransactionStateRequest(BaseModel):
     transaction_id: str
     estado: str
+
+class UpdateTransactionFondeadoRequest(BaseModel):
+    transaction_id: str
+    fondeado: str
 
 class TreasuryBalance(BaseModel):
     client_id: str
