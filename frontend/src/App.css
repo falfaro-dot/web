@@ -181,6 +181,25 @@ body {
   margin-bottom: 30px;
 }
 
+.totals-grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.total-card-grid {
+  padding: 25px;
+}
+
+.total-card-grid .total-label {
+  font-size: 17px;
+}
+
+.total-card-grid .total-amount {
+  font-size: 36px;
+}
+
 .total-content {
   display: flex;
   justify-content: space-between;
