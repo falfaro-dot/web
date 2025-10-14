@@ -904,6 +904,129 @@ async def export_operations_summary_xlsx(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
 
+@app.post("/api/efectivo/create")
+async def create_efectivo_transaction(
+    fecha: str = Form(...),
+    cliente: str = Form(...),
+    cantidad: float = Form(...),
+    tipo: str = Form(...),
+    ejecutivo: str = Form(...)
+):
+    """Create cash transaction"""
+    try:
+        efectivo_tx = EfectivoTransaction(
+            fecha=fecha,
+            cliente=cliente,
+            cantidad=cantidad,
+            tipo=tipo,
+            ejecutivo=ejecutivo
+        )
+        await db.efectivo_transactions.insert_one(efectivo_tx.dict())
+        
+        return {
+            "success": True,
+            "message": "Transacción de efectivo creada exitosamente"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creando transacción: {str(e)}")
+
+@app.get("/api/efectivo/transactions")
+async def get_efectivo_transactions(
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None
+):
+    """Get cash transactions with optional date filter"""
+    try:
+        query = {}
+        if fecha_inicio and fecha_fin:
+            query["fecha"] = {
+                "$gte": fecha_inicio,
+                "$lte": fecha_fin
+            }
+        
+        transactions = await db.efectivo_transactions.find(query).sort("fecha", -1).to_list(length=None)
+        
+        # Calculate running balance
+        transactions.reverse()  # Order by date ascending for balance calculation
+        saldo = 0.0
+        for tx in transactions:
+            if tx["tipo"] == "Abono":
+                saldo += tx["cantidad"]
+            else:  # Cargo
+                saldo -= tx["cantidad"]
+            tx["saldo"] = round(saldo, 2)
+        
+        transactions.reverse()  # Return to descending order
+        
+        return serialize_doc(transactions)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo transacciones: {str(e)}")
+
+@app.get("/api/efectivo/saldo")
+async def get_efectivo_saldo(fecha: Optional[str] = None):
+    """Get cash balance for a specific date or latest"""
+    try:
+        query = {}
+        if fecha:
+            query["fecha"] = {"$lte": fecha}
+        
+        transactions = await db.efectivo_transactions.find(query).sort("fecha", 1).to_list(length=None)
+        
+        saldo = 0.0
+        for tx in transactions:
+            if tx["tipo"] == "Abono":
+                saldo += tx["cantidad"]
+            else:  # Cargo
+                saldo -= tx["cantidad"]
+        
+        return {"saldo": round(saldo, 2)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calculando saldo: {str(e)}")
+
+@app.post("/api/bancos/create")
+async def create_bank_balance(
+    fecha: str = Form(...),
+    nombre_cuenta: str = Form(...),
+    saldo: float = Form(...),
+    ejecutivo: str = Form(...)
+):
+    """Create bank balance entry"""
+    try:
+        bank_balance = BankBalance(
+            fecha=fecha,
+            nombre_cuenta=nombre_cuenta,
+            saldo=saldo,
+            ejecutivo=ejecutivo
+        )
+        await db.bank_balances.insert_one(bank_balance.dict())
+        
+        return {
+            "success": True,
+            "message": "Saldo bancario registrado exitosamente"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error registrando saldo: {str(e)}")
+
+@app.get("/api/bancos/saldo_total")
+async def get_total_bank_balance(fecha: Optional[str] = None):
+    """Get total bank balance for a specific date (sum of all accounts)"""
+    try:
+        if not fecha:
+            # Get latest date
+            latest = await db.bank_balances.find().sort("fecha", -1).limit(1).to_list(length=1)
+            if not latest:
+                return {"saldo_total": 0.0, "fecha": None}
+            fecha = latest[0]["fecha"]
+        
+        # Get all accounts for that date
+        balances = await db.bank_balances.find({"fecha": fecha}).to_list(length=None)
+        
+        total = sum(b["saldo"] for b in balances)
+        
+        return {"saldo_total": round(total, 2), "fecha": fecha}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calculando saldo total: {str(e)}")
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "message": "Sistema de Registro de Operaciones API"}
