@@ -133,6 +133,21 @@ class DeleteDataRequest(BaseModel):
     fecha_inicio: str
     fecha_fin: str
 
+class EfectivoTransaction(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    fecha: str
+    cliente: str
+    cantidad: float
+    tipo: str  # "Cargo" o "Abono"
+    ejecutivo: str
+
+class BankBalance(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    fecha: str
+    nombre_cuenta: str
+    saldo: float
+    ejecutivo: str
+
 # Initialize default users
 @app.on_event("startup")
 async def startup_event():
