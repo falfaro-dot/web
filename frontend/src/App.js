@@ -200,14 +200,110 @@ function App() {
     }
   };
   
+  // Handle efectivo submission
+  const handleEfectivoSubmit = async (e) => {
+    e.preventDefault();
+    setEfectivoMessage('');
+    
+    try {
+      const formData = new FormData();
+      formData.append('fecha', efectivoFecha);
+      formData.append('cliente', efectivoCliente);
+      formData.append('cantidad', efectivoCantidad);
+      formData.append('tipo', efectivoTipo);
+      formData.append('ejecutivo', currentUser);
+      
+      const response = await fetch(`${BACKEND_URL}/api/efectivo/create`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setEfectivoMessage('✓ Transacción registrada exitosamente');
+        setEfectivoFecha('');
+        setEfectivoCliente('');
+        setEfectivoCantidad('');
+      }
+    } catch (error) {
+      setEfectivoMessage('✗ Error: ' + error.message);
+    }
+  };
+  
+  // Handle banco submission
+  const handleBancoSubmit = async (e) => {
+    e.preventDefault();
+    setBancoMessage('');
+    
+    try {
+      const formData = new FormData();
+      formData.append('fecha', bancoFecha);
+      formData.append('nombre_cuenta', bancoCuenta);
+      formData.append('saldo', bancoSaldo);
+      formData.append('ejecutivo', currentUser);
+      
+      const response = await fetch(`${BACKEND_URL}/api/bancos/create`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setBancoMessage('✓ Saldo bancario registrado exitosamente');
+        setBancoFecha('');
+        setBancoCuenta('');
+        setBancoSaldo('');
+      }
+    } catch (error) {
+      setBancoMessage('✗ Error: ' + error.message);
+    }
+  };
+  
+  // Load efectivo transactions
+  const loadEfectivoTransactions = async () => {
+    try {
+      let url = `${BACKEND_URL}/api/efectivo/transactions?`;
+      if (searchDateStart) url += `fecha_inicio=${searchDateStart}&`;
+      if (searchDateEnd) url += `fecha_fin=${searchDateEnd}&`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      setEfectivoTransactions(data);
+    } catch (error) {
+      console.error('Error loading efectivo:', error);
+    }
+  };
+  
+  // Load saldos for dashboard
+  const loadSaldos = async () => {
+    try {
+      const fecha = searchDateEnd || searchDateStart || new Date().toISOString().split('T')[0];
+      
+      // Efectivo
+      const efectivoResp = await fetch(`${BACKEND_URL}/api/efectivo/saldo?fecha=${fecha}`);
+      const efectivoData = await efectivoResp.json();
+      setEfectivoSaldo(efectivoData.saldo);
+      
+      // Bancos
+      const bancosResp = await fetch(`${BACKEND_URL}/api/bancos/saldo_total?fecha=${fecha}`);
+      const bancosData = await bancosResp.json();
+      setBancoSaldoTotal(bancosData.saldo_total);
+    } catch (error) {
+      console.error('Error loading saldos:', error);
+    }
+  };
+  
   // Load dashboard data when view changes
   useEffect(() => {
     if (activeView === 'dashboard') {
       loadTreasuryBalances();
       loadOperationsSummary();
       loadDashboardTransactions();
+      loadSaldos();
     } else if (activeView === 'transactions') {
       loadTransactions();
+    } else if (activeView === 'efectivo') {
+      loadEfectivoTransactions();
     }
   }, [activeView]);
   
