@@ -447,7 +447,7 @@ function App() {
       <header className="app-header">
         <div className="header-content">
           <div className="header-left">
-            <img src="https://customer-assets.emergentagent.com/job_finance-parser-4/artifacts/twvm8fyz_logo3.png" alt="IBS" className="header-logo" />
+            <img src="https://customer-assets.emergentagent.com/job_finance-parser-4/artifacts/ums9p6bn_IBS%20GROUP-LOGO_SYMBOL-2.png" alt="IBS" className="header-logo" />
             <h1>Sistema de Registro de Operaciones</h1>
           </div>
           <div className="header-right">
