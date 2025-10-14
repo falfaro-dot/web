@@ -721,22 +721,7 @@ function App() {
               </div>
             </div>
             
-            {/* Treasury Total */}
-            <div className="total-card">
-              <div className="total-content">
-                <div className="total-label">
-                  <span className="total-icon">💎</span>
-                  <span>Balance Total de Tesorería</span>
-                </div>
-                <div className="total-amount">
-                  {formatCurrency(
-                    treasuryBalances.reduce((sum, balance) => sum + balance.balance, 0)
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {/* Grid 2x2 Totalizers */}
+            {/* First Row - Balance Tesorería y Total Facturado */}
             <div className="totals-grid-2x2">
               <div className="total-card total-card-grid">
                 <div className="total-content">
