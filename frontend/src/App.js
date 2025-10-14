@@ -784,6 +784,10 @@ function App() {
                 </div>
               </div>
               
+            </div>
+            
+            {/* Third Row - Retornos Enviados y Pagados */}
+            <div className="totals-grid-2x2">
               <div className="total-card total-card-grid">
                 <div className="total-content">
                   <div className="total-label">
@@ -812,6 +816,33 @@ function App() {
                         .filter(tx => tx.estado === 'Pagado')
                         .reduce((sum, tx) => sum + tx.retorno_1, 0)
                     )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Fourth Row - Saldos en Bancos y Efectivo */}
+            <div className="totals-grid-2x2">
+              <div className="total-card total-card-grid">
+                <div className="total-content">
+                  <div className="total-label">
+                    <span className="total-icon">🏦</span>
+                    <span>Saldos en Bancos</span>
+                  </div>
+                  <div className="total-amount">
+                    {formatCurrency(bancoSaldoTotal)}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="total-card total-card-grid">
+                <div className="total-content">
+                  <div className="total-label">
+                    <span className="total-icon">💵</span>
+                    <span>Saldos en Efectivo</span>
+                  </div>
+                  <div className="total-amount">
+                    {formatCurrency(efectivoSaldo)}
                   </div>
                 </div>
               </div>
