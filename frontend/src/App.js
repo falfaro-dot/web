@@ -714,6 +714,7 @@ function App() {
                     loadTreasuryBalances();
                     loadOperationsSummary();
                     loadDashboardTransactions();
+                    loadSaldos();
                   }}
                 >
                   🔍 Buscar
