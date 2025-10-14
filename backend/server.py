@@ -274,6 +274,11 @@ async def upload_file(
             await db.clients.insert_one(client.dict())
             client_id = client.id
         
+        # Calculate comisión efectivo if clasificacion is "Transacción de Efectivo"
+        comision_efectivo = 0.0
+        if clasificacion == "Transacción de Efectivo":
+            comision_efectivo = result["financial_data"]["total_factura"] * 0.01  # 1% adicional
+        
         # Create transaction record
         transaction = Transaction(
             client_id=client_id,
@@ -289,6 +294,7 @@ async def upload_file(
             comision_estructura_porcentaje=comision_estructura,
             comision_estructura=result["financial_data"]["comision_estructura"],
             comision_ibsg=result["financial_data"]["comision_ibsg"],
+            comision_efectivo=round(comision_efectivo, 2),
             retorno_2=result["financial_data"]["retorno_2"],
             clasificacion=clasificacion,
             fecha=datetime.now(timezone.utc).isoformat(),
