@@ -38,6 +38,22 @@ function App() {
   const [deleteDateStart, setDeleteDateStart] = useState('');
   const [deleteDateEnd, setDeleteDateEnd] = useState('');
   
+  // Efectivo state
+  const [efectivoFecha, setEfectivoFecha] = useState('');
+  const [efectivoCliente, setEfectivoCliente] = useState('');
+  const [efectivoCantidad, setEfectivoCantidad] = useState('');
+  const [efectivoTipo, setEfectivoTipo] = useState('Abono');
+  const [efectivoMessage, setEfectivoMessage] = useState('');
+  const [efectivoTransactions, setEfectivoTransactions] = useState([]);
+  const [efectivoSaldo, setEfectivoSaldo] = useState(0);
+  
+  // Bancos state
+  const [bancoFecha, setBancoFecha] = useState('');
+  const [bancoCuenta, setBancoCuenta] = useState('');
+  const [bancoSaldo, setBancoSaldo] = useState('');
+  const [bancoMessage, setBancoMessage] = useState('');
+  const [bancoSaldoTotal, setBancoSaldoTotal] = useState(0);
+  
   // Check login status
   useEffect(() => {
     const user = localStorage.getItem('username');
