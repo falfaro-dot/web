@@ -426,7 +426,7 @@ function App() {
                     <option value="Abono a Tesorería">Abono a Tesorería</option>
                     <option value="Cargo/Retiro de Tesorería">Cargo/Retiro de Tesorería</option>
                     <option value="Transacción Fondeada Directamente">Transacción Fondeada Directamente</option>
-                    <option value="Transacción de Servicio/Facturación">Transacción de Servicio/Facturación</option>
+                    <option value="Transacción de Efectivo">Transacción de Efectivo</option>
                   </select>
                 </div>
                 
