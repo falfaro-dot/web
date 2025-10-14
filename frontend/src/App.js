@@ -489,6 +489,7 @@ function App() {
       <main className="app-main">
         {activeView === 'upload' && (
           <div className="upload-section">
+            {/* Excel Upload */}
             <div className="section-card">
               <h2>📁 Cargar Archivo Excel</h2>
               <form onSubmit={handleFileUpload}>
