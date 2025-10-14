@@ -558,6 +558,122 @@ function App() {
                 </button>
               </form>
             </div>
+            
+            {/* Captura de Efectivo */}
+            <div className="section-card">
+              <h2>💵 Captura de Efectivo</h2>
+              <form onSubmit={handleEfectivoSubmit}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Fecha</label>
+                    <input
+                      type="date"
+                      value={efectivoFecha}
+                      onChange={(e) => setEfectivoFecha(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Cliente</label>
+                    <input
+                      type="text"
+                      value={efectivoCliente}
+                      onChange={(e) => setEfectivoCliente(e.target.value)}
+                      placeholder="Nombre del cliente"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Cantidad</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={efectivoCantidad}
+                      onChange={(e) => setEfectivoCantidad(e.target.value)}
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Tipo de Movimiento</label>
+                    <select
+                      value={efectivoTipo}
+                      onChange={(e) => setEfectivoTipo(e.target.value)}
+                      required
+                    >
+                      <option value="Abono">Abono</option>
+                      <option value="Cargo">Cargo</option>
+                    </select>
+                  </div>
+                </div>
+                
+                {efectivoMessage && (
+                  <div className={efectivoMessage.includes('✓') ? 'success-message' : 'error-message'}>
+                    {efectivoMessage}
+                  </div>
+                )}
+                
+                <button type="submit" className="btn-primary">
+                  💾 Registrar Efectivo
+                </button>
+              </form>
+            </div>
+            
+            {/* Captura de Saldos Bancos */}
+            <div className="section-card">
+              <h2>🏦 Captura de Saldos Bancos</h2>
+              <form onSubmit={handleBancoSubmit}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Fecha</label>
+                    <input
+                      type="date"
+                      value={bancoFecha}
+                      onChange={(e) => setBancoFecha(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Nombre de la Cuenta</label>
+                    <input
+                      type="text"
+                      value={bancoCuenta}
+                      onChange={(e) => setBancoCuenta(e.target.value)}
+                      placeholder="Ej: Santander Cuenta 1234"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Saldo de la Cuenta</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={bancoSaldo}
+                    onChange={(e) => setBancoSaldo(e.target.value)}
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+                
+                {bancoMessage && (
+                  <div className={bancoMessage.includes('✓') ? 'success-message' : 'error-message'}>
+                    {bancoMessage}
+                  </div>
+                )}
+                
+                <button type="submit" className="btn-primary">
+                  💾 Registrar Saldo Bancario
+                </button>
+              </form>
+            </div>
           </div>
         )}
         
