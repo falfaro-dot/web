@@ -726,6 +726,37 @@ function App() {
               <div className="total-card total-card-grid">
                 <div className="total-content">
                   <div className="total-label">
+                    <span className="total-icon">💎</span>
+                    <span>Balance Total de Tesorería</span>
+                  </div>
+                  <div className="total-amount">
+                    {formatCurrency(
+                      treasuryBalances.reduce((sum, balance) => sum + balance.balance, 0)
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="total-card total-card-grid">
+                <div className="total-content">
+                  <div className="total-label">
+                    <span className="total-icon">📊</span>
+                    <span>Total Facturado</span>
+                  </div>
+                  <div className="total-amount">
+                    {formatCurrency(
+                      operationsSummary.reduce((sum, op) => sum + (op.total_facturado || 0), 0)
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Second Row - Comisiones IBSG y Financiados */}
+            <div className="totals-grid-2x2">
+              <div className="total-card total-card-grid">
+                <div className="total-content">
+                  <div className="total-label">
                     <span className="total-icon">💰</span>
                     <span>Total Comisiones IBSG</span>
                   </div>
