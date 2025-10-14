@@ -363,7 +363,13 @@ function App() {
           className={activeView === 'upload' ? 'nav-btn active' : 'nav-btn'}
           onClick={() => setActiveView('upload')}
         >
-          📤 Cargar Archivo
+          📤 Cargar información
+        </button>
+        <button
+          className={activeView === 'efectivo' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveView('efectivo')}
+        >
+          💵 Historial de Efectivo
         </button>
       </nav>
       
