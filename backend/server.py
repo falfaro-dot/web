@@ -100,6 +100,7 @@ class Transaction(BaseModel):
     comision_estructura_porcentaje: float
     comision_estructura: float
     comision_ibsg: float
+    comision_efectivo: float = 0.0  # 1% adicional para transacciones de efectivo
     retorno_2: float
     clasificacion: str
     estado: str = "Enviado"  # Default state
