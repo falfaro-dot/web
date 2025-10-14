@@ -908,6 +908,80 @@ function App() {
           </div>
         )}
         
+        {activeView === 'efectivo' && (
+          <div className="efectivo-section">
+            {/* Search Filters */}
+            <div className="section-card">
+              <h2>🔍 Filtros de Búsqueda</h2>
+              <div className="filter-row">
+                <div className="form-group">
+                  <label>Fecha Inicio</label>
+                  <input
+                    type="date"
+                    value={searchDateStart}
+                    onChange={(e) => setSearchDateStart(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Fecha Fin</label>
+                  <input
+                    type="date"
+                    value={searchDateEnd}
+                    onChange={(e) => setSearchDateEnd(e.target.value)}
+                  />
+                </div>
+                <button
+                  className="btn-search"
+                  onClick={loadEfectivoTransactions}
+                >
+                  🔍 Buscar
+                </button>
+              </div>
+            </div>
+            
+            {/* Efectivo Transactions Table */}
+            <div className="section-card">
+              <h2>💵 Historial de Transacciones de Efectivo</h2>
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Cliente</th>
+                      <th>Cargo</th>
+                      <th>Abono</th>
+                      <th>Saldo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {efectivoTransactions.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="no-data">No hay transacciones de efectivo</td>
+                      </tr>
+                    ) : (
+                      efectivoTransactions.map((tx, idx) => (
+                        <tr key={idx}>
+                          <td>{tx.fecha}</td>
+                          <td>{tx.cliente}</td>
+                          <td className={tx.tipo === 'Cargo' ? 'negative' : ''}>
+                            {tx.tipo === 'Cargo' ? formatCurrency(tx.cantidad) : '-'}
+                          </td>
+                          <td className={tx.tipo === 'Abono' ? 'positive' : ''}>
+                            {tx.tipo === 'Abono' ? formatCurrency(tx.cantidad) : '-'}
+                          </td>
+                          <td className={tx.saldo >= 0 ? 'positive' : 'negative'}>
+                            <strong>{formatCurrency(tx.saldo)}</strong>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {activeView === 'transactions' && (
           <div className="transactions-section">
             {/* Search Filters */}
