@@ -305,6 +305,80 @@ function App() {
     }
   };
   
+  // Handle bank account creation
+  const handleCuentaSubmit = async (e) => {
+    e.preventDefault();
+    setCuentaMessage('');
+    
+    try {
+      const formData = new FormData();
+      formData.append('estructura', cuentaEstructura);
+      formData.append('nivel', cuentaNivel);
+      formData.append('tipo_movimiento', cuentaTipoMovimiento);
+      formData.append('nombre', cuentaNombre);
+      formData.append('banco', cuentaBanco);
+      formData.append('cuenta', cuentaNumero);
+      formData.append('clabe', cuentaClabe);
+      
+      const response = await fetch(`${BACKEND_URL}/api/bank_accounts/create`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setCuentaMessage('✓ Cuenta bancaria registrada exitosamente');
+        setCuentaEstructura('');
+        setCuentaNombre('');
+        setCuentaBanco('');
+        setCuentaNumero('');
+        setCuentaClabe('');
+        loadBankAccounts();
+      }
+    } catch (error) {
+      setCuentaMessage('✗ Error: ' + error.message);
+    }
+  };
+  
+  // Load bank accounts
+  const loadBankAccounts = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/bank_accounts`);
+      const data = await response.json();
+      setBankAccounts(data);
+    } catch (error) {
+      console.error('Error loading bank accounts:', error);
+    }
+  };
+  
+  // Load bank accounts with balances
+  const loadBankAccountsWithBalances = async () => {
+    try {
+      const fecha = searchDateEnd || searchDateStart || new Date().toISOString().split('T')[0];
+      const response = await fetch(`${BACKEND_URL}/api/bank_accounts/saldos?fecha=${fecha}`);
+      const data = await response.json();
+      setBankAccountsWithBalances(data);
+    } catch (error) {
+      console.error('Error loading bank accounts with balances:', error);
+    }
+  };
+  
+  // Initialize bank accounts data
+  const initializeBankAccounts = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/bank_accounts/bulk_insert`, {
+        method: 'POST'
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert(data.message);
+        loadBankAccounts();
+      }
+    } catch (error) {
+      alert('Error inicializando cuentas: ' + error.message);
+    }
+  };
+  
   // Load dashboard data when view changes
   useEffect(() => {
     if (activeView === 'dashboard') {
@@ -316,6 +390,9 @@ function App() {
       loadTransactions();
     } else if (activeView === 'efectivo') {
       loadEfectivoTransactions();
+    } else if (activeView === 'cuentas') {
+      loadBankAccounts();
+      loadBankAccountsWithBalances();
     }
   }, [activeView]);
   
