@@ -54,6 +54,18 @@ function App() {
   const [bancoMessage, setBancoMessage] = useState('');
   const [bancoSaldoTotal, setBancoSaldoTotal] = useState(0);
   
+  // Bank Accounts state
+  const [cuentaEstructura, setCuentaEstructura] = useState('');
+  const [cuentaNivel, setCuentaNivel] = useState('Primer Nivel');
+  const [cuentaTipoMovimiento, setCuentaTipoMovimiento] = useState('TRASPASO SIMPLE');
+  const [cuentaNombre, setCuentaNombre] = useState('');
+  const [cuentaBanco, setCuentaBanco] = useState('');
+  const [cuentaNumero, setCuentaNumero] = useState('');
+  const [cuentaClabe, setCuentaClabe] = useState('');
+  const [cuentaMessage, setCuentaMessage] = useState('');
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [bankAccountsWithBalances, setBankAccountsWithBalances] = useState([]);
+  
   // Check login status
   useEffect(() => {
     const user = localStorage.getItem('username');
