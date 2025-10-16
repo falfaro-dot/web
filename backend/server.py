@@ -148,6 +148,17 @@ class BankBalance(BaseModel):
     saldo: float
     ejecutivo: str
 
+class BankAccount(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    estructura: str
+    nivel: str
+    tipo_movimiento: str
+    nombre: str
+    banco: str
+    cuenta: str
+    clabe: str
+    fecha_creacion: str
+
 # Initialize default users
 @app.on_event("startup")
 async def startup_event():
