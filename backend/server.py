@@ -1038,6 +1038,127 @@ async def get_total_bank_balance(fecha: Optional[str] = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error calculando saldo total: {str(e)}")
 
+@app.post("/api/bank_accounts/create")
+async def create_bank_account(
+    estructura: str = Form(...),
+    nivel: str = Form(...),
+    tipo_movimiento: str = Form(...),
+    nombre: str = Form(...),
+    banco: str = Form(...),
+    cuenta: str = Form(...),
+    clabe: str = Form(...)
+):
+    """Create a new bank account"""
+    try:
+        bank_account = BankAccount(
+            estructura=estructura,
+            nivel=nivel,
+            tipo_movimiento=tipo_movimiento,
+            nombre=nombre,
+            banco=banco,
+            cuenta=cuenta,
+            clabe=clabe,
+            fecha_creacion=datetime.now(timezone.utc).isoformat()
+        )
+        await db.bank_accounts.insert_one(bank_account.dict())
+        
+        return {
+            "success": True,
+            "message": "Cuenta bancaria registrada exitosamente"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error registrando cuenta: {str(e)}")
+
+@app.get("/api/bank_accounts")
+async def get_bank_accounts():
+    """Get all bank accounts"""
+    try:
+        accounts = await db.bank_accounts.find().sort("estructura", 1).to_list(length=None)
+        return serialize_doc(accounts)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo cuentas: {str(e)}")
+
+@app.get("/api/bank_accounts/saldos")
+async def get_bank_accounts_with_balances(fecha: Optional[str] = None):
+    """Get all bank accounts with their latest balances"""
+    try:
+        if not fecha:
+            fecha = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        
+        accounts = await db.bank_accounts.find().to_list(length=None)
+        
+        result = []
+        for account in accounts:
+            # Get latest balance for this account
+            balance_record = await db.bank_balances.find_one(
+                {"nombre_cuenta": account["nombre"], "fecha": {"$lte": fecha}},
+                sort=[("fecha", -1)]
+            )
+            
+            result.append({
+                "id": account["id"],
+                "nombre": account["nombre"],
+                "banco": account["banco"],
+                "cuenta": account["cuenta"],
+                "estructura": account["estructura"],
+                "nivel": account["nivel"],
+                "tipo_movimiento": account["tipo_movimiento"],
+                "saldo": balance_record["saldo"] if balance_record else 0.0,
+                "ultima_actualizacion": balance_record["fecha"] if balance_record else None
+            })
+        
+        return serialize_doc(result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo saldos: {str(e)}")
+
+@app.post("/api/bank_accounts/bulk_insert")
+async def bulk_insert_bank_accounts():
+    """Insert initial bank accounts data"""
+    try:
+        # Delete existing accounts first
+        await db.bank_accounts.delete_many({})
+        
+        initial_accounts = [
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "TRASPASO SIMPLE", "nombre": "MESUBAJ COMERCIALIZADORA SA DE CV", "banco": "BBVA", "cuenta": "0121565796", "clabe": "012320001215657960"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "TRASPASO SIMPLE", "nombre": "NEXBILL INMOBILIARIA SA DE CV", "banco": "BANKAOOL", "cuenta": "00046431", "clabe": "147150000000464310"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "TRASPASO SIMPLE", "nombre": "INDIRAL SA DE CV", "banco": "BANKAOOL", "cuenta": "00046430", "clabe": "147150000000464307"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "TRASPASO SIMPLE", "nombre": "PRESIL INTERACTIVE GROUP SA DE CV", "banco": "BANKAOOL", "cuenta": "00060776", "clabe": "147150000000607766"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "TRASPASO SIMPLE", "nombre": "MAGNO OBRAS DARNISH SA DE CV", "banco": "BANKAOOL", "cuenta": "00058378", "clabe": "147150000000583783"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "TRASPASO SIMPLE", "nombre": "MESUBAJ COMERCIALIZADORA SA DE CV", "banco": "BANKAOOL", "cuenta": "00046584", "clabe": "147150000000465843"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "TRASPASO SIMPLE", "nombre": "MASTERRAN SA DE CV", "banco": "BANBAJIO", "cuenta": "453462100201", "clabe": "030320900041759157"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "TRASPASO SIMPLE", "nombre": "CORPMEC SA DE CV", "banco": "BANREGIO", "cuenta": "134968760013", "clabe": "058320000019574550"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Segundo Nivel", "tipo_movimiento": "DE MONEY GIVER", "nombre": "NEXBILL INMOBILIARIA SA DE CV", "banco": "STP", "cuenta": "120235", "clabe": "646180333001202353"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Segundo Nivel", "tipo_movimiento": "DE MONEY GIVER", "nombre": "INDIRAL SA DE CV", "banco": "STP", "cuenta": "120234", "clabe": "646180333001202340"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Segundo Nivel", "tipo_movimiento": "DE MONEY GIVER", "nombre": "MESUBAJ COMERCIALIZADORA S.A. DE C.V.", "banco": "STP", "cuenta": "121906", "clabe": "646180333001219061"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Segundo Nivel", "tipo_movimiento": "DE MONEY GIVER", "nombre": "PRESIL INTERACTIVE GROUP", "banco": "STP", "cuenta": "121969", "clabe": "646180333001219692"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "CUENTAS DIVIDENDO", "nombre": "DYE ASESORES SC", "banco": "BANCOPPEL", "cuenta": "12000013100", "clabe": "137180120000131008"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "CUENTAS DIVIDENDO", "nombre": "DYE ASESORES SC", "banco": "BANKAOOL", "cuenta": "00038938", "clabe": "147152023000389386"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "ANTICIPO REMANENTE", "nombre": "LANDERAN SA DE CV", "banco": "BBVA", "cuenta": "0124494679", "clabe": "012743001244946795"},
+            {"estructura": "Guadalajara Mario F", "nivel": "Primer Nivel", "tipo_movimiento": "ANTICIPO REMANENTE", "nombre": "LANDERAN SA DE CV", "banco": "BANKAOOL", "cuenta": "00171946", "clabe": "147150000001719462"},
+            {"estructura": "Guadalajara German", "nivel": "Primer Nivel", "tipo_movimiento": "TRASPASO SIMPLE", "nombre": "PUNTO BRONCE SA DE CV", "banco": "BANKAOOL", "cuenta": "00174409", "clabe": "147150000001744097"},
+            {"estructura": "Guadalajara German", "nivel": "Primer Nivel", "tipo_movimiento": "CUENTAS DIVIDENDO", "nombre": "ADMINISTRACION DE PROYECTOS LATINUS SA DE CV", "banco": "BANKAOOL", "cuenta": "00177667", "clabe": "147150000001776670"},
+            {"estructura": "Guadalajara German", "nivel": "Primer Nivel", "tipo_movimiento": "CUENTAS CUCA", "nombre": "VENADO NEGRO SAPI DE CV", "banco": "BANKAOOL", "cuenta": "00176934", "clabe": "147150000001769344"},
+            {"estructura": "Monterrey Nuvo", "nivel": "Segundo Nivel", "tipo_movimiento": "TRASPASO SIMPLE", "nombre": "COMPANIA COMERCIAL ASIA MEXICO CANADA SA DE CV", "banco": "ASP", "cuenta": "No especifica", "clabe": "659455000000005425"},
+            {"estructura": "Monterrey Nuvo", "nivel": "Segundo Nivel", "tipo_movimiento": "TRASPASO SIMPLE", "nombre": "CHSINC MECHANICAL SA DE CV", "banco": "ASP", "cuenta": "No especifica", "clabe": "659455000000002622"}
+        ]
+        
+        accounts_to_insert = []
+        for acc_data in initial_accounts:
+            account = BankAccount(
+                **acc_data,
+                fecha_creacion=datetime.now(timezone.utc).isoformat()
+            )
+            accounts_to_insert.append(account.dict())
+        
+        result = await db.bank_accounts.insert_many(accounts_to_insert)
+        
+        return {
+            "success": True,
+            "message": f"{len(result.inserted_ids)} cuentas bancarias insertadas exitosamente"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error insertando cuentas: {str(e)}")
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "message": "Sistema de Registro de Operaciones API"}
