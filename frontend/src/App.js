@@ -1417,6 +1417,215 @@ function App() {
         </div>
       )}
       
+        {activeView === 'cuentas' && (
+          <div className="cuentas-section">
+            {/* Alta de Cuentas */}
+            <div className="section-card">
+              <h2>🏦 Alta de Cuenta Bancaria</h2>
+              <form onSubmit={handleCuentaSubmit}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Nombre de Estructura</label>
+                    <input
+                      type="text"
+                      value={cuentaEstructura}
+                      onChange={(e) => setCuentaEstructura(e.target.value)}
+                      placeholder="Ej: Guadalajara Mario F"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Nivel</label>
+                    <select
+                      value={cuentaNivel}
+                      onChange={(e) => setCuentaNivel(e.target.value)}
+                      required
+                    >
+                      <option value="Primer Nivel">Primer Nivel</option>
+                      <option value="Segundo Nivel">Segundo Nivel</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Tipo de Movimiento</label>
+                    <select
+                      value={cuentaTipoMovimiento}
+                      onChange={(e) => setCuentaTipoMovimiento(e.target.value)}
+                      required
+                    >
+                      <option value="TRASPASO SIMPLE">TRASPASO SIMPLE</option>
+                      <option value="DE MONEY GIVER">DE MONEY GIVER</option>
+                      <option value="CUENTAS DIVIDENDO">CUENTAS DIVIDENDO</option>
+                      <option value="CUENTAS CUCA">CUENTAS CUCA</option>
+                      <option value="ANTICIPO REMANENTE">ANTICIPO REMANENTE</option>
+                    </select>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Nombre</label>
+                    <input
+                      type="text"
+                      value={cuentaNombre}
+                      onChange={(e) => setCuentaNombre(e.target.value)}
+                      placeholder="Nombre de la empresa"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Banco</label>
+                    <input
+                      type="text"
+                      value={cuentaBanco}
+                      onChange={(e) => setCuentaBanco(e.target.value)}
+                      placeholder="Ej: BBVA, Bankaool, etc."
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Número de Cuenta</label>
+                    <input
+                      type="text"
+                      value={cuentaNumero}
+                      onChange={(e) => setCuentaNumero(e.target.value)}
+                      placeholder="Número de cuenta"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>CLABE</label>
+                  <input
+                    type="text"
+                    value={cuentaClabe}
+                    onChange={(e) => setCuentaClabe(e.target.value)}
+                    placeholder="CLABE interbancaria"
+                    required
+                  />
+                </div>
+                
+                {cuentaMessage && (
+                  <div className={cuentaMessage.includes('✓') ? 'success-message' : 'error-message'}>
+                    {cuentaMessage}
+                  </div>
+                )}
+                
+                <button type="submit" className="btn-primary">
+                  💾 Registrar Cuenta
+                </button>
+              </form>
+            </div>
+            
+            {/* Tabla de Saldos de Cuentas Bancarias */}
+            <div className="section-card">
+              <div className="transactions-header">
+                <h2>💰 Saldos de Cuentas Bancarias</h2>
+                <button
+                  className="btn-secondary"
+                  onClick={initializeBankAccounts}
+                  style={{padding: '10px 20px'}}
+                >
+                  🔄 Inicializar Cuentas Base
+                </button>
+              </div>
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Estructura</th>
+                      <th>Nivel</th>
+                      <th>Tipo</th>
+                      <th>Nombre</th>
+                      <th>Banco</th>
+                      <th>Cuenta</th>
+                      <th>Saldo</th>
+                      <th>Última Actualización</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bankAccountsWithBalances.length === 0 ? (
+                      <tr>
+                        <td colSpan="8" className="no-data">
+                          No hay cuentas bancarias registradas.
+                          <br />
+                          <button
+                            onClick={initializeBankAccounts}
+                            className="btn-primary"
+                            style={{marginTop: '10px'}}
+                          >
+                            Cargar Cuentas Iniciales
+                          </button>
+                        </td>
+                      </tr>
+                    ) : (
+                      bankAccountsWithBalances.map((account, idx) => (
+                        <tr key={idx}>
+                          <td>{account.estructura}</td>
+                          <td><span className="badge-small">{account.nivel}</span></td>
+                          <td><span className="badge-small">{account.tipo_movimiento}</span></td>
+                          <td>{account.nombre}</td>
+                          <td><strong>{account.banco}</strong></td>
+                          <td className="cuenta-cell">{account.cuenta}</td>
+                          <td className={account.saldo >= 0 ? 'positive' : 'negative'}>
+                            {formatCurrency(account.saldo)}
+                          </td>
+                          <td>{account.ultima_actualizacion || 'Sin movimientos'}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            {/* Listado de Todas las Cuentas */}
+            <div className="section-card">
+              <h2>📋 Catálogo de Cuentas Bancarias</h2>
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Estructura</th>
+                      <th>Nivel</th>
+                      <th>Tipo de Movimiento</th>
+                      <th>Nombre</th>
+                      <th>Banco</th>
+                      <th>Cuenta</th>
+                      <th>CLABE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bankAccounts.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="no-data">No hay cuentas registradas</td>
+                      </tr>
+                    ) : (
+                      bankAccounts.map((account, idx) => (
+                        <tr key={idx}>
+                          <td>{account.estructura}</td>
+                          <td><span className="badge-small">{account.nivel}</span></td>
+                          <td><span className="badge-small">{account.tipo_movimiento}</span></td>
+                          <td>{account.nombre}</td>
+                          <td><strong>{account.banco}</strong></td>
+                          <td className="cuenta-cell">{account.cuenta}</td>
+                          <td className="clabe-cell">{account.clabe}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+      
       {/* Footer */}
       <footer className="app-footer">
         <p>© 2025 IBS Group - Integra Business Solutions</p>
