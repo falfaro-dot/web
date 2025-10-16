@@ -735,14 +735,22 @@ function App() {
                   </div>
                   
                   <div className="form-group">
-                    <label>Nombre de la Cuenta</label>
-                    <input
-                      type="text"
+                    <label>Cuenta Bancaria</label>
+                    <select
                       value={bancoCuenta}
                       onChange={(e) => setBancoCuenta(e.target.value)}
-                      placeholder="Ej: Santander Cuenta 1234"
                       required
-                    />
+                      onFocus={() => {
+                        if (bankAccounts.length === 0) loadBankAccounts();
+                      }}
+                    >
+                      <option value="">Seleccione una cuenta</option>
+                      {bankAccounts.map((acc, idx) => (
+                        <option key={idx} value={acc.nombre}>
+                          {acc.nombre} - {acc.banco} ({acc.cuenta})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 
