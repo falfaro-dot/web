@@ -483,6 +483,12 @@ function App() {
         >
           💵 Historial de Efectivo
         </button>
+        <button
+          className={activeView === 'cuentas' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveView('cuentas')}
+        >
+          🏦 Cuentas Bancarias
+        </button>
       </nav>
       
       {/* Main Content */}
