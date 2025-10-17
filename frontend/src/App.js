@@ -1273,7 +1273,28 @@ function App() {
             
             {/* Caja Chica Transactions Table */}
             <div className="section-card">
-              <h2>💵 Historial de Movimientos - Caja Chica</h2>
+              <div className="transactions-header">
+                <h2>💵 Historial de Movimientos - Caja Chica</h2>
+                <div className="export-buttons">
+                  <button
+                    className="btn-export"
+                    onClick={() => {
+                      let url = `${BACKEND_URL}/api/export/efectivo/xlsx?`;
+                      if (searchDateStart) url += `fecha_inicio=${searchDateStart}T00:00:00Z&`;
+                      if (searchDateEnd) url += `fecha_fin=${searchDateEnd}T23:59:59Z&`;
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    📥 Descargar Excel
+                  </button>
+                  <button
+                    className="btn-delete"
+                    onClick={() => setDeleteCajaModalOpen(true)}
+                  >
+                    🗑️ Borrar Datos
+                  </button>
+                </div>
+              </div>
               <div className="table-container">
                 <table className="data-table">
                   <thead>
