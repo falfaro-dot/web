@@ -1087,6 +1087,71 @@ async def export_bank_balances_xlsx(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
 
+
+@app.get("/api/export/bank_accounts_catalog/xlsx")
+async def export_bank_accounts_catalog_xlsx():
+    """Export complete bank accounts catalog to Excel file"""
+    try:
+        # Get all bank accounts
+        accounts = await db.bank_accounts.find().sort("estructura", 1).to_list(length=None)
+        
+        # Create workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Catálogo Cuentas"
+        
+        # Define headers
+        headers = [
+            "Estructura", "Nivel", "Tipo de Movimiento", "Nombre", 
+            "Banco", "Número de Cuenta", "CLABE"
+        ]
+        
+        # Style for headers
+        header_fill = PatternFill(start_color="C5B77D", end_color="C5B77D", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        # Write headers
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Write data
+        for row_num, account in enumerate(accounts, 2):
+            ws.cell(row=row_num, column=1, value=account.get("estructura", ""))
+            ws.cell(row=row_num, column=2, value=account.get("nivel", ""))
+            ws.cell(row=row_num, column=3, value=account.get("tipo_movimiento", ""))
+            ws.cell(row=row_num, column=4, value=account.get("nombre", ""))
+            ws.cell(row=row_num, column=5, value=account.get("banco", ""))
+            ws.cell(row=row_num, column=6, value=account.get("cuenta", ""))
+            ws.cell(row=row_num, column=7, value=account.get("clabe", ""))
+        
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column[0].column_letter].width = adjusted_width
+        
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=catalogo_cuentas_bancarias.xlsx"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
+
 @app.post("/api/admin/delete_efectivo")
 async def delete_efectivo_by_date_range(request: DeleteDataRequest):
     """Delete cash transactions (Caja Chica) by date range - Admin only"""
