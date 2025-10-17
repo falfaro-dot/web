@@ -151,6 +151,7 @@ class BankBalance(BaseModel):
     nombre_cuenta: str
     saldo: float
     ejecutivo: str
+    timestamp: Optional[str] = None  # DD/MM/YYYY HH:MM:SS
 
 class BankAccount(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
