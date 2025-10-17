@@ -1148,6 +1148,9 @@ class TreasuryTestRunner:
         # Run tests in order
         if self.test_health_check():
             self.test_authentication()
+            # Focus on the specific corrections mentioned in review request
+            self.test_corrections_focus()  # PRIORITY: Test specific corrections
+            # Run other tests if needed
             self.test_file_upload()
             self.test_treasury_balance()
             self.test_cash_treasury_impact()  # Test for Afectación a Tesorería
