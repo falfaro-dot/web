@@ -273,15 +273,18 @@ frontend:
 
   - task: "Exportación de Saldos de Cuentas Bancarias"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py, /app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implementado botón 'Descargar Excel' en Saldos de Cuentas Bancarias. Endpoint creado: GET /api/export/bank_balances/xlsx para exportar saldos actuales de todas las cuentas con timestamp."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Exportación de Saldos Bancarios funcionando correctamente. GET /api/export/bank_balances/xlsx genera archivo Excel con headers correctos (Nombre Cuenta, Banco, Saldo, Última Actualización). Muestra últimos saldos de cada cuenta bancaria. Campo 'Última Actualización' muestra timestamp completo cuando está disponible o fecha para backward compatibility. Archivo Excel contiene datos reales de 8+ cuentas bancarias con saldos actualizados."
 
   - task: "Mejora en Captura de Saldos Bancarios"
     implemented: true
