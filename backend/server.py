@@ -941,6 +941,7 @@ async def create_efectivo_transaction(
     tipo_movimiento: str = Form(...),
     origen_destino_tipo: str = Form(...),
     origen_destino_nombre: str = Form(...),
+    afectacion_origen_destino: str = Form(None),
     cantidad: float = Form(...),
     folio_cheque: str = Form(None),
     concepto: str = Form(...),
@@ -953,6 +954,7 @@ async def create_efectivo_transaction(
             tipo_movimiento=tipo_movimiento,
             origen_destino_tipo=origen_destino_tipo,
             origen_destino_nombre=origen_destino_nombre,
+            afectacion_origen_destino=afectacion_origen_destino if afectacion_origen_destino else None,
             cantidad=cantidad,
             folio_cheque=folio_cheque if folio_cheque else None,
             concepto=concepto,
@@ -961,19 +963,19 @@ async def create_efectivo_transaction(
         await db.efectivo_transactions.insert_one(efectivo_tx.dict())
         
         # If it involves a treasury account, update the treasury balance
-        if origen_destino_tipo == "Tesorería Cliente":
+        if origen_destino_tipo == "Tesorería Cliente" and afectacion_origen_destino:
             # Find client by name
             client = await db.clients.find_one({"cliente": origen_destino_nombre})
             if client:
                 treasury = await db.treasury_balances.find_one({"client_id": client["id"]})
                 current_balance = treasury["balance"] if treasury else 0.0
                 
-                # Update balance based on movement type
-                if tipo_movimiento == "Abono a Caja Chica":
-                    # Money leaving client treasury to Caja Chica
+                # Update balance based on afectacion
+                if afectacion_origen_destino == "Cargo":
+                    # Cargo = disminuye el saldo de la tesorería
                     new_balance = current_balance - cantidad
-                else:  # Cargo a Caja Chica
-                    # Money from Caja Chica going to client treasury
+                else:  # Abono
+                    # Abono = aumenta el saldo de la tesorería
                     new_balance = current_balance + cantidad
                 
                 treasury_record = TreasuryBalance(
@@ -988,6 +990,39 @@ async def create_efectivo_transaction(
                     {"$set": treasury_record.dict()},
                     upsert=True
                 )
+        
+        # If it involves a bank account, update the bank balance
+        if origen_destino_tipo == "Cuenta Bancaria" and afectacion_origen_destino:
+            # Extract account name from the combined string
+            # Format: "NOMBRE - BANCO (CUENTA)"
+            account_name = origen_destino_nombre.split(" - ")[0] if " - " in origen_destino_nombre else origen_destino_nombre
+            
+            # Find the account
+            account = await db.bank_accounts.find_one({"nombre": account_name})
+            if account:
+                # Get current balance
+                balance_record = await db.bank_balances.find_one(
+                    {"nombre_cuenta": account["nombre"]},
+                    sort=[("fecha", -1)]
+                )
+                current_balance = balance_record["saldo"] if balance_record else 0.0
+                
+                # Calculate new balance based on afectacion
+                if afectacion_origen_destino == "Cargo":
+                    # Cargo = disminuye el saldo de la cuenta
+                    new_balance = current_balance - cantidad
+                else:  # Abono
+                    # Abono = aumenta el saldo de la cuenta
+                    new_balance = current_balance + cantidad
+                
+                # Create new balance record
+                new_balance_record = BankBalance(
+                    fecha=fecha,
+                    nombre_cuenta=account["nombre"],
+                    saldo=round(new_balance, 2),
+                    ejecutivo=ejecutivo
+                )
+                await db.bank_balances.insert_one(new_balance_record.dict())
         
         return {
             "success": True,
