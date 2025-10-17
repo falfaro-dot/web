@@ -228,6 +228,7 @@ function App() {
       formData.append('tipo_movimiento', cajaTipoMovimiento);
       formData.append('origen_destino_tipo', cajaOrigenDestinoTipo);
       formData.append('origen_destino_nombre', cajaOrigenDestinoNombre);
+      formData.append('afectacion_origen_destino', cajaAfectacionOrigenDestino);
       formData.append('cantidad', cajaCantidad);
       formData.append('folio_cheque', cajaFolioCheque);
       formData.append('concepto', cajaConcepto);
