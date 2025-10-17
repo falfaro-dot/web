@@ -427,6 +427,22 @@ async def get_clients():
     clients = await db.clients.find().to_list(length=None)
     return serialize_doc(clients)
 
+@app.get("/api/treasury/clients")
+async def get_treasury_clients():
+    """Get all clients with treasury accounts"""
+    try:
+        treasuries = await db.treasury_balances.find().to_list(length=None)
+        clients = []
+        for treasury in treasuries:
+            clients.append({
+                "client_id": treasury["client_id"],
+                "client_name": treasury["client_name"],
+                "balance": treasury["balance"]
+            })
+        return serialize_doc(clients)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo clientes: {str(e)}")
+
 @app.post("/api/transactions/cancel")
 async def cancel_transaction(request: CancelTransactionRequest):
     """Cancel a transaction by creating a negative entry"""
