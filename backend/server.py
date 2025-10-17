@@ -984,7 +984,7 @@ async def get_efectivo_transactions(
     fecha_inicio: Optional[str] = None,
     fecha_fin: Optional[str] = None
 ):
-    """Get cash transactions with optional date filter"""
+    """Get cash transactions (Caja Chica) with optional date filter"""
     try:
         query = {}
         if fecha_inicio and fecha_fin:
@@ -995,15 +995,15 @@ async def get_efectivo_transactions(
         
         transactions = await db.efectivo_transactions.find(query).sort("fecha", -1).to_list(length=None)
         
-        # Calculate running balance
+        # Calculate running balance for Caja Chica
         transactions.reverse()  # Order by date ascending for balance calculation
         saldo = 0.0
         for tx in transactions:
-            if tx["tipo"] == "Abono":
+            if tx["tipo_movimiento"] == "Abono a Caja Chica":
                 saldo += tx["cantidad"]
-            else:  # Cargo
+            else:  # Cargo a Caja Chica
                 saldo -= tx["cantidad"]
-            tx["saldo"] = round(saldo, 2)
+            tx["saldo_caja_chica"] = round(saldo, 2)
         
         transactions.reverse()  # Return to descending order
         
