@@ -1013,7 +1013,7 @@ async def get_efectivo_transactions(
 
 @app.get("/api/efectivo/saldo")
 async def get_efectivo_saldo(fecha: Optional[str] = None):
-    """Get cash balance for a specific date or latest"""
+    """Get Caja Chica balance for a specific date or latest"""
     try:
         query = {}
         if fecha:
@@ -1023,9 +1023,9 @@ async def get_efectivo_saldo(fecha: Optional[str] = None):
         
         saldo = 0.0
         for tx in transactions:
-            if tx["tipo"] == "Abono":
+            if tx["tipo_movimiento"] == "Abono a Caja Chica":
                 saldo += tx["cantidad"]
-            else:  # Cargo
+            else:  # Cargo a Caja Chica
                 saldo -= tx["cantidad"]
         
         return {"saldo": round(saldo, 2)}
