@@ -445,10 +445,12 @@ function App() {
       return;
     }
     
-    if (!window.confirm('⚠️ ADVERTENCIA: Esta acción eliminará permanentemente todas las transacciones en el rango de fechas seleccionado. ¿Está seguro?')) {
-      return;
-    }
-    
+    // Open confirmation modal instead of using window.confirm
+    setDeleteConfirmModalOpen(true);
+  };
+  
+  // Execute delete after confirmation
+  const executeDeleteData = async () => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/admin/delete_data`, {
         method: 'POST',
@@ -465,6 +467,7 @@ function App() {
       
       if (response.ok && data.success) {
         alert(`✓ ${data.deleted_count} transacciones eliminadas exitosamente`);
+        setDeleteConfirmModalOpen(false);
         setDeleteModalOpen(false);
         setDeleteUsername('');
         setDeletePassword('');
@@ -472,10 +475,12 @@ function App() {
         setDeleteDateEnd('');
         loadTransactions();
       } else {
-        alert('✗ ' + data.detail || 'Error eliminando datos');
+        alert('✗ ' + (data.detail || 'Error eliminando datos'));
+        setDeleteConfirmModalOpen(false);
       }
     } catch (error) {
       alert('✗ Error de conexión: ' + error.message);
+      setDeleteConfirmModalOpen(false);
     }
   };
 
