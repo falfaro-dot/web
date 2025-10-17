@@ -332,9 +332,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Exportación y Borrado de Datos en Caja Chica"
-    - "Exportación de Catálogo de Cuentas Bancarias"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -364,3 +362,5 @@ agent_communication:
     message: "Usuario reporta dos problemas: 1) Botón de borrar datos en Caja Chica no borra el historial, solo afecta totalizador del dashboard. 2) Falta botón de exportar Excel en Catálogo de Cuentas Bancarias."
   - agent: "main"
     message: "Corregido problema de borrado en Caja Chica (formato de fechas timestamp vs string simple). Agregado nuevo endpoint GET /api/export/bank_accounts_catalog/xlsx para exportar catálogo completo de cuentas con botón en frontend. Necesito testing de correcciones."
+  - agent: "testing"
+    message: "✅ CORRECCIONES COMPLETAMENTE VERIFICADAS: Ambas correcciones del review request funcionan perfectamente. 1) BORRADO DE CAJA CHICA CORREGIDO: El problema de formato de fechas ha sido resuelto. Pruebas exhaustivas confirman que el endpoint POST /api/admin/delete_efectivo ahora elimina correctamente las transacciones del historial (efectivo_transactions collection), no solo del totalizador. Probado con timestamps (2025-01-10T00:00:00Z) y funciona correctamente extrayendo la fecha (2025-01-10). 2) EXPORTACIÓN DE CATÁLOGO BANCARIO IMPLEMENTADA: Nuevo endpoint GET /api/export/bank_accounts_catalog/xlsx funciona perfectamente, genera Excel con 21 cuentas bancarias, headers correctos (Estructura, Nivel, Tipo de Movimiento, Nombre, Banco, Número de Cuenta, CLABE), filename correcto. Ambas funcionalidades listas para producción."
