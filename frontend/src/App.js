@@ -676,30 +676,97 @@ function App() {
               </form>
             </div>
             
-            {/* Captura de Efectivo */}
+            {/* Captura de Caja Chica */}
             <div className="section-card">
-              <h2>💵 Captura de Efectivo</h2>
-              <form onSubmit={handleEfectivoSubmit}>
+              <h2>💵 Captura de Movimientos - Caja Chica</h2>
+              <form onSubmit={handleCajaChicaSubmit}>
                 <div className="form-row">
                   <div className="form-group">
                     <label>Fecha</label>
                     <input
                       type="date"
-                      value={efectivoFecha}
-                      onChange={(e) => setEfectivoFecha(e.target.value)}
+                      value={cajaFecha}
+                      onChange={(e) => setCajaFecha(e.target.value)}
                       required
                     />
                   </div>
                   
                   <div className="form-group">
-                    <label>Cliente</label>
-                    <input
-                      type="text"
-                      value={efectivoCliente}
-                      onChange={(e) => setEfectivoCliente(e.target.value)}
-                      placeholder="Nombre del cliente"
+                    <label>Tipo de Movimiento</label>
+                    <select
+                      value={cajaTipoMovimiento}
+                      onChange={(e) => setCajaTipoMovimiento(e.target.value)}
                       required
-                    />
+                    >
+                      <option value="Abono a Caja Chica">Abono a Caja Chica</option>
+                      <option value="Cargo a Caja Chica">Cargo a Caja Chica</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Origen/Destino</label>
+                    <select
+                      value={cajaOrigenDestinoTipo}
+                      onChange={(e) => {
+                        setCajaOrigenDestinoTipo(e.target.value);
+                        setCajaOrigenDestinoNombre('');
+                      }}
+                      required
+                    >
+                      <option value="Tesorería Cliente">Tesorería Cliente</option>
+                      <option value="Cuenta Bancaria">Cuenta Bancaria</option>
+                      <option value="Otro">Otro</option>
+                    </select>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>
+                      {cajaOrigenDestinoTipo === 'Tesorería Cliente' ? 'Cliente' :
+                       cajaOrigenDestinoTipo === 'Cuenta Bancaria' ? 'Cuenta' : 'Descripción'}
+                    </label>
+                    {cajaOrigenDestinoTipo === 'Tesorería Cliente' ? (
+                      <select
+                        value={cajaOrigenDestinoNombre}
+                        onChange={(e) => setCajaOrigenDestinoNombre(e.target.value)}
+                        required
+                        onFocus={() => {
+                          if (treasuryClients.length === 0) loadTreasuryClients();
+                        }}
+                      >
+                        <option value="">Seleccione un cliente</option>
+                        {treasuryClients.map((client, idx) => (
+                          <option key={idx} value={client.client_name}>
+                            {client.client_name} (Saldo: {formatCurrency(client.balance)})
+                          </option>
+                        ))}
+                      </select>
+                    ) : cajaOrigenDestinoTipo === 'Cuenta Bancaria' ? (
+                      <select
+                        value={cajaOrigenDestinoNombre}
+                        onChange={(e) => setCajaOrigenDestinoNombre(e.target.value)}
+                        required
+                        onFocus={() => {
+                          if (bankAccounts.length === 0) loadBankAccounts();
+                        }}
+                      >
+                        <option value="">Seleccione una cuenta</option>
+                        {bankAccounts.map((acc, idx) => (
+                          <option key={idx} value={`${acc.nombre} - ${acc.banco} (${acc.cuenta})`}>
+                            {acc.nombre} - {acc.banco} ({acc.cuenta})
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={cajaOrigenDestinoNombre}
+                        onChange={(e) => setCajaOrigenDestinoNombre(e.target.value)}
+                        placeholder="Descripción del origen/destino"
+                        required
+                      />
+                    )}
                   </div>
                 </div>
                 
@@ -709,34 +776,44 @@ function App() {
                     <input
                       type="number"
                       step="0.01"
-                      value={efectivoCantidad}
-                      onChange={(e) => setEfectivoCantidad(e.target.value)}
+                      value={cajaCantidad}
+                      onChange={(e) => setCajaCantidad(e.target.value)}
                       placeholder="0.00"
                       required
                     />
                   </div>
                   
                   <div className="form-group">
-                    <label>Tipo de Movimiento</label>
-                    <select
-                      value={efectivoTipo}
-                      onChange={(e) => setEfectivoTipo(e.target.value)}
-                      required
-                    >
-                      <option value="Abono">Abono</option>
-                      <option value="Cargo">Cargo</option>
-                    </select>
+                    <label>Folio de Cheque (Opcional)</label>
+                    <input
+                      type="text"
+                      value={cajaFolioCheque}
+                      onChange={(e) => setCajaFolioCheque(e.target.value)}
+                      placeholder="Ej: 356"
+                    />
                   </div>
                 </div>
                 
-                {efectivoMessage && (
-                  <div className={efectivoMessage.includes('✓') ? 'success-message' : 'error-message'}>
-                    {efectivoMessage}
+                <div className="form-group">
+                  <label>Concepto</label>
+                  <textarea
+                    value={cajaConcepto}
+                    onChange={(e) => setCajaConcepto(e.target.value)}
+                    placeholder="Describa el concepto del movimiento"
+                    rows="2"
+                    required
+                    style={{width: '100%', padding: '12px', borderRadius: '6px', border: '2px solid #e0e0e0'}}
+                  />
+                </div>
+                
+                {cajaMessage && (
+                  <div className={cajaMessage.includes('✓') ? 'success-message' : 'error-message'}>
+                    {cajaMessage}
                   </div>
                 )}
                 
                 <button type="submit" className="btn-primary">
-                  💾 Registrar Efectivo
+                  💾 Registrar Movimiento
                 </button>
               </form>
             </div>
