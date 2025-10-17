@@ -1227,12 +1227,13 @@ function App() {
                   <thead>
                     <tr>
                       <th>Fecha</th>
-                      <th>Tipo</th>
+                      <th>Tipo Movimiento</th>
                       <th>Origen/Destino</th>
+                      <th>Afectación</th>
                       <th>Concepto</th>
                       <th>Folio Cheque</th>
-                      <th>Cargo</th>
-                      <th>Abono</th>
+                      <th>Cargo Caja</th>
+                      <th>Abono Caja</th>
                       <th>Saldo Caja Chica</th>
                     </tr>
                   </thead>
