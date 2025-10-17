@@ -136,9 +136,12 @@ class DeleteDataRequest(BaseModel):
 class EfectivoTransaction(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     fecha: str
-    cliente: str
+    tipo_movimiento: str  # "Abono a Caja Chica" o "Cargo a Caja Chica"
+    origen_destino_tipo: str  # "Cuenta Bancaria", "Tesorería Cliente", "Otro"
+    origen_destino_nombre: str
     cantidad: float
-    tipo: str  # "Cargo" o "Abono"
+    folio_cheque: Optional[str] = None
+    concepto: str
     ejecutivo: str
 
 class BankBalance(BaseModel):
