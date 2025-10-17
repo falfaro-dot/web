@@ -570,7 +570,7 @@ function App() {
           className={activeView === 'efectivo' ? 'nav-btn active' : 'nav-btn'}
           onClick={() => setActiveView('efectivo')}
         >
-          💵 Historial de Efectivo
+          💵 Caja Chica
         </button>
         <button
           className={activeView === 'cuentas' ? 'nav-btn active' : 'nav-btn'}
