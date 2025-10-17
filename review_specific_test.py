@@ -282,7 +282,7 @@ class ReviewTestRunner:
         
         # Step d) Verify timestamp format DD/MM/YYYY HH:MM:SS
         try:
-            response = self.session.get(f"{BACKEND_URL}/bank_accounts/saldos")
+            response = self.session.get(f"{BACKEND_URL}/bank_accounts/saldos?fecha={test_date}")
             if response.status_code == 200:
                 accounts = response.json()
                 target_account = None
