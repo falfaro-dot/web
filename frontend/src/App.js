@@ -502,10 +502,12 @@ function App() {
       return;
     }
     
-    if (!window.confirm('⚠️ ADVERTENCIA: Esta acción eliminará permanentemente todos los movimientos de Caja Chica en el rango de fechas seleccionado. ¿Está seguro?')) {
-      return;
-    }
-    
+    // Open confirmation modal instead of using window.confirm
+    setDeleteCajaConfirmModalOpen(true);
+  };
+  
+  // Execute delete Caja Chica after confirmation
+  const executeDeleteCajaData = async () => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/admin/delete_efectivo`, {
         method: 'POST',
@@ -522,6 +524,7 @@ function App() {
       
       if (response.ok && data.success) {
         alert(`✓ ${data.deleted_count} movimientos de Caja Chica eliminados exitosamente`);
+        setDeleteCajaConfirmModalOpen(false);
         setDeleteCajaModalOpen(false);
         setDeleteCajaUsername('');
         setDeleteCajaPassword('');
@@ -529,10 +532,12 @@ function App() {
         setDeleteCajaDateEnd('');
         loadCajaChicaTransactions();
       } else {
-        alert('✗ ' + data.detail || 'Error eliminando datos');
+        alert('✗ ' + (data.detail || 'Error eliminando datos'));
+        setDeleteCajaConfirmModalOpen(false);
       }
     } catch (error) {
       alert('✗ Error de conexión: ' + error.message);
+      setDeleteCajaConfirmModalOpen(false);
     }
   };
 
