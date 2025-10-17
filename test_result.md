@@ -256,6 +256,42 @@ frontend:
         agent: "testing"
         comment: "✅ PASSED: UI Caja Chica con Afectación a Tesorería completamente funcional. Testing exitoso de todos los escenarios solicitados: 1) Login exitoso con operaciones@ibsgroup.mx/Sistema2, 2) Navegación correcta a módulo Caja Chica, 3) Formulario 'Ingreso de Efectivo' encontrado en sección 'Cargar información', 4) Dropdowns dinámicos funcionan correctamente - 'Afectación a Tesorería' aparece solo para 'Cuenta Bancaria' y 'Tesorería Cliente', se oculta para 'Otro', 5) Mensajes de advertencia correctos: 'Abono (Aumenta Saldo)' muestra '✅ Aumentará el saldo actual', 'Cargo (Disminuye Saldo)' muestra '⚠️ Restará del saldo actual', 6) Formulario permite registro de movimientos, 7) Navegación entre pestañas (Dashboard, Cuentas Bancarias, Caja Chica) funciona correctamente, 8) Saldos de tesorería y cuentas bancarias son verificables en sus respectivas secciones, 9) Historial de transacciones de Caja Chica visible con transacciones existentes. No se detectaron errores JavaScript críticos. Funcionalidad completamente operativa y lista para producción."
 
+  - task: "Exportación y Borrado de Datos en Caja Chica"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implementados botones de 'Descargar Excel' y 'Borrar Datos' en Historial de Movimientos - Caja Chica. Endpoints creados: GET /api/export/efectivo/xlsx para exportar a Excel, POST /api/admin/delete_efectivo para borrar datos con autenticación especial (mismos usuarios que transacciones). Modal de borrado con validación de credenciales implementado."
+
+  - task: "Exportación de Saldos de Cuentas Bancarias"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implementado botón 'Descargar Excel' en Saldos de Cuentas Bancarias. Endpoint creado: GET /api/export/bank_balances/xlsx para exportar saldos actuales de todas las cuentas con timestamp."
+
+  - task: "Mejora en Captura de Saldos Bancarios"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Modificado endpoint POST /api/bancos/captura para sobrescribir saldos existentes cuando se captura el mismo día y cuenta. Agregado campo 'timestamp' al modelo BankBalance con formato DD/MM/YYYY HH:MM:SS. Campo 'Última Actualización' ahora muestra timestamp completo en lugar de solo fecha."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
