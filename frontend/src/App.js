@@ -38,14 +38,18 @@ function App() {
   const [deleteDateStart, setDeleteDateStart] = useState('');
   const [deleteDateEnd, setDeleteDateEnd] = useState('');
   
-  // Efectivo state
-  const [efectivoFecha, setEfectivoFecha] = useState('');
-  const [efectivoCliente, setEfectivoCliente] = useState('');
-  const [efectivoCantidad, setEfectivoCantidad] = useState('');
-  const [efectivoTipo, setEfectivoTipo] = useState('Abono');
-  const [efectivoMessage, setEfectivoMessage] = useState('');
-  const [efectivoTransactions, setEfectivoTransactions] = useState([]);
-  const [efectivoSaldo, setEfectivoSaldo] = useState(0);
+  // Caja Chica state
+  const [cajaFecha, setCajaFecha] = useState('');
+  const [cajaTipoMovimiento, setCajaTipoMovimiento] = useState('Abono a Caja Chica');
+  const [cajaOrigenDestinoTipo, setCajaOrigenDestinoTipo] = useState('Tesorería Cliente');
+  const [cajaOrigenDestinoNombre, setCajaOrigenDestinoNombre] = useState('');
+  const [cajaCantidad, setCajaCantidad] = useState('');
+  const [cajaFolioCheque, setCajaFolioCheque] = useState('');
+  const [cajaConcepto, setCajaConcepto] = useState('');
+  const [cajaMessage, setCajaMessage] = useState('');
+  const [cajaTransactions, setCajaTransactions] = useState([]);
+  const [cajaSaldo, setCajaSaldo] = useState(0);
+  const [treasuryClients, setTreasuryClients] = useState([]);
   
   // Bancos state
   const [bancoFecha, setBancoFecha] = useState('');
