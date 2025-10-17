@@ -311,7 +311,7 @@ class TreasuryTestRunner:
                     'comision': 5.0,
                     'comision_estructura': 2.5,
                     'clasificacion': 'Cargo/Retiro de Tesorería',
-                    'ejecutivo': 'Ejecutivo2'
+                    'ejecutivo': 'administracion@ibsgroup.mx'
                 }
                 
                 response = self.session.post(f"{BACKEND_URL}/upload", files=files, data=data)
