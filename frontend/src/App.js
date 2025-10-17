@@ -1893,7 +1893,18 @@ function App() {
             
             {/* Listado de Todas las Cuentas */}
             <div className="section-card">
-              <h2>📋 Catálogo de Cuentas Bancarias</h2>
+              <div className="transactions-header">
+                <h2>📋 Catálogo de Cuentas Bancarias</h2>
+                <button
+                  className="btn-export"
+                  onClick={() => {
+                    const url = `${BACKEND_URL}/api/export/bank_accounts_catalog/xlsx`;
+                    window.open(url, '_blank');
+                  }}
+                >
+                  📥 Descargar Excel
+                </button>
+              </div>
               <div className="table-container">
                 <table className="data-table">
                   <thead>
