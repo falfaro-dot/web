@@ -139,6 +139,7 @@ class EfectivoTransaction(BaseModel):
     tipo_movimiento: str  # "Abono a Caja Chica" o "Cargo a Caja Chica"
     origen_destino_tipo: str  # "Cuenta Bancaria", "Tesorería Cliente", "Otro"
     origen_destino_nombre: str
+    afectacion_origen_destino: Optional[str] = None  # "Cargo" o "Abono" a la cuenta/tesorería
     cantidad: float
     folio_cheque: Optional[str] = None
     concepto: str
