@@ -42,6 +42,8 @@ function App() {
   const [deleteCajaPassword, setDeleteCajaPassword] = useState('');
   const [deleteCajaDateStart, setDeleteCajaDateStart] = useState('');
   const [deleteCajaDateEnd, setDeleteCajaDateEnd] = useState('');
+  const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
+  const [deleteCajaConfirmModalOpen, setDeleteCajaConfirmModalOpen] = useState(false);
   
   // Caja Chica state
   const [cajaFecha, setCajaFecha] = useState('');
