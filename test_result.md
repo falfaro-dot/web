@@ -248,8 +248,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Funcionalidad Afectación a Tesorería en Caja Chica"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
