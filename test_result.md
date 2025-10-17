@@ -258,11 +258,11 @@ frontend:
 
   - task: "Exportación y Borrado de Datos en Caja Chica"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py, /app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -276,18 +276,24 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Corregido endpoint /api/admin/delete_efectivo. El problema era que las fechas enviadas incluían timestamp (2025-01-15T00:00:00Z) pero las fechas en BD son strings simples (2025-01-15). Agregada lógica para extraer solo la parte de fecha (split por 'T') antes de hacer el query. Ahora debería borrar correctamente del historial de efectivo_transactions."
+      - working: true
+        agent: "testing"
+        comment: "✅ CORRECCIÓN VERIFICADA: El problema de borrado de Caja Chica ha sido completamente resuelto. Pruebas exhaustivas confirman: 1) Creación de 3 transacciones de prueba en rango 2025-01-10 a 2025-01-15, 2) Verificación de que aparecen en historial (GET /api/efectivo/transactions), 3) Llamada a endpoint de borrado con formato timestamp (2025-01-10T00:00:00Z), 4) Verificación de que las transacciones YA NO aparecen en el historial (3 → 0 registros). La corrección del formato de fechas (extraer solo YYYY-MM-DD del timestamp) funciona perfectamente. El borrado ahora elimina correctamente del historial de efectivo_transactions, no solo del totalizador del dashboard."
 
   - task: "Exportación de Catálogo de Cuentas Bancarias"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py, /app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implementado botón 'Descargar Excel' en sección 'Catálogo de Cuentas Bancarias'. Endpoint creado: GET /api/export/bank_accounts_catalog/xlsx para exportar todas las cuentas con estructura, nivel, tipo, nombre, banco, cuenta y CLABE."
+      - working: true
+        agent: "testing"
+        comment: "✅ NUEVA FUNCIONALIDAD VERIFICADA: Exportación de Catálogo de Cuentas Bancarias funcionando perfectamente. GET /api/export/bank_accounts_catalog/xlsx genera archivo Excel válido (6346 bytes) con filename correcto 'catalogo_cuentas_bancarias.xlsx'. Verificación de datos: 21 cuentas bancarias exportadas con todos los campos requeridos (Estructura, Nivel, Tipo de Movimiento, Nombre, Banco, Número de Cuenta, CLABE). Headers correctos en Excel. Endpoint responde con content-type apropiado para archivos Excel. Funcionalidad completamente operativa y lista para uso en producción."
 
   - task: "Exportación de Saldos de Cuentas Bancarias"
     implemented: true
