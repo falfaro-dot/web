@@ -1042,10 +1042,10 @@ function App() {
                 <div className="total-content">
                   <div className="total-label">
                     <span className="total-icon">💵</span>
-                    <span>Saldos en Efectivo</span>
+                    <span>Saldo Caja Chica</span>
                   </div>
                   <div className="total-amount">
-                    {formatCurrency(efectivoSaldo)}
+                    {formatCurrency(cajaSaldo)}
                   </div>
                 </div>
               </div>
