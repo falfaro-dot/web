@@ -1182,45 +1182,59 @@ function App() {
                 </div>
                 <button
                   className="btn-search"
-                  onClick={loadEfectivoTransactions}
+                  onClick={loadCajaChicaTransactions}
                 >
                   🔍 Buscar
                 </button>
               </div>
             </div>
             
-            {/* Efectivo Transactions Table */}
+            {/* Caja Chica Transactions Table */}
             <div className="section-card">
-              <h2>💵 Historial de Transacciones de Efectivo</h2>
+              <h2>💵 Historial de Movimientos - Caja Chica</h2>
               <div className="table-container">
                 <table className="data-table">
                   <thead>
                     <tr>
                       <th>Fecha</th>
-                      <th>Cliente</th>
+                      <th>Tipo</th>
+                      <th>Origen/Destino</th>
+                      <th>Concepto</th>
+                      <th>Folio Cheque</th>
                       <th>Cargo</th>
                       <th>Abono</th>
-                      <th>Saldo</th>
+                      <th>Saldo Caja Chica</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {efectivoTransactions.length === 0 ? (
+                    {cajaTransactions.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="no-data">No hay transacciones de efectivo</td>
+                        <td colSpan="8" className="no-data">No hay movimientos de Caja Chica</td>
                       </tr>
                     ) : (
-                      efectivoTransactions.map((tx, idx) => (
+                      cajaTransactions.map((tx, idx) => (
                         <tr key={idx}>
                           <td>{tx.fecha}</td>
-                          <td>{tx.cliente}</td>
-                          <td className={tx.tipo === 'Cargo' ? 'negative' : ''}>
-                            {tx.tipo === 'Cargo' ? formatCurrency(tx.cantidad) : '-'}
+                          <td>
+                            <span className={tx.tipo_movimiento === 'Abono a Caja Chica' ? 'badge-green' : 'badge-red'}>
+                              {tx.tipo_movimiento}
+                            </span>
                           </td>
-                          <td className={tx.tipo === 'Abono' ? 'positive' : ''}>
-                            {tx.tipo === 'Abono' ? formatCurrency(tx.cantidad) : '-'}
+                          <td>
+                            <strong>{tx.origen_destino_tipo}</strong>
+                            <br />
+                            <small>{tx.origen_destino_nombre}</small>
                           </td>
-                          <td className={tx.saldo >= 0 ? 'positive' : 'negative'}>
-                            <strong>{formatCurrency(tx.saldo)}</strong>
+                          <td className="description-cell">{tx.concepto}</td>
+                          <td>{tx.folio_cheque || '-'}</td>
+                          <td className={tx.tipo_movimiento === 'Cargo a Caja Chica' ? 'negative' : ''}>
+                            {tx.tipo_movimiento === 'Cargo a Caja Chica' ? formatCurrency(tx.cantidad) : '-'}
+                          </td>
+                          <td className={tx.tipo_movimiento === 'Abono a Caja Chica' ? 'positive' : ''}>
+                            {tx.tipo_movimiento === 'Abono a Caja Chica' ? formatCurrency(tx.cantidad) : '-'}
+                          </td>
+                          <td className={tx.saldo_caja_chica >= 0 ? 'positive' : 'negative'}>
+                            <strong>{formatCurrency(tx.saldo_caja_chica)}</strong>
                           </td>
                         </tr>
                       ))
