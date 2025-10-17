@@ -1240,7 +1240,7 @@ function App() {
                   <tbody>
                     {cajaTransactions.length === 0 ? (
                       <tr>
-                        <td colSpan="8" className="no-data">No hay movimientos de Caja Chica</td>
+                        <td colSpan="9" className="no-data">No hay movimientos de Caja Chica</td>
                       </tr>
                     ) : (
                       cajaTransactions.map((tx, idx) => (
@@ -1255,6 +1255,13 @@ function App() {
                             <strong>{tx.origen_destino_tipo}</strong>
                             <br />
                             <small>{tx.origen_destino_nombre}</small>
+                          </td>
+                          <td>
+                            {tx.afectacion_origen_destino ? (
+                              <span className={tx.afectacion_origen_destino === 'Cargo' ? 'badge-red' : 'badge-green'}>
+                                {tx.afectacion_origen_destino}
+                              </span>
+                            ) : '-'}
                           </td>
                           <td className="description-cell">{tx.concepto}</td>
                           <td>{tx.folio_cheque || '-'}</td>
