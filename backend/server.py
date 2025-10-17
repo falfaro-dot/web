@@ -921,25 +921,60 @@ async def export_operations_summary_xlsx(
 @app.post("/api/efectivo/create")
 async def create_efectivo_transaction(
     fecha: str = Form(...),
-    cliente: str = Form(...),
+    tipo_movimiento: str = Form(...),
+    origen_destino_tipo: str = Form(...),
+    origen_destino_nombre: str = Form(...),
     cantidad: float = Form(...),
-    tipo: str = Form(...),
+    folio_cheque: str = Form(None),
+    concepto: str = Form(...),
     ejecutivo: str = Form(...)
 ):
-    """Create cash transaction"""
+    """Create cash transaction for Caja Chica"""
     try:
         efectivo_tx = EfectivoTransaction(
             fecha=fecha,
-            cliente=cliente,
+            tipo_movimiento=tipo_movimiento,
+            origen_destino_tipo=origen_destino_tipo,
+            origen_destino_nombre=origen_destino_nombre,
             cantidad=cantidad,
-            tipo=tipo,
+            folio_cheque=folio_cheque if folio_cheque else None,
+            concepto=concepto,
             ejecutivo=ejecutivo
         )
         await db.efectivo_transactions.insert_one(efectivo_tx.dict())
         
+        # If it involves a treasury account, update the treasury balance
+        if origen_destino_tipo == "Tesorería Cliente":
+            # Find client by name
+            client = await db.clients.find_one({"cliente": origen_destino_nombre})
+            if client:
+                treasury = await db.treasury_balances.find_one({"client_id": client["id"]})
+                current_balance = treasury["balance"] if treasury else 0.0
+                
+                # Update balance based on movement type
+                if tipo_movimiento == "Abono a Caja Chica":
+                    # Money leaving client treasury to Caja Chica
+                    new_balance = current_balance - cantidad
+                else:  # Cargo a Caja Chica
+                    # Money from Caja Chica going to client treasury
+                    new_balance = current_balance + cantidad
+                
+                treasury_record = TreasuryBalance(
+                    client_id=client["id"],
+                    client_name=origen_destino_nombre,
+                    balance=round(new_balance, 2),
+                    last_updated=datetime.now(timezone.utc).isoformat()
+                )
+                
+                await db.treasury_balances.update_one(
+                    {"client_id": client["id"]},
+                    {"$set": treasury_record.dict()},
+                    upsert=True
+                )
+        
         return {
             "success": True,
-            "message": "Transacción de efectivo creada exitosamente"
+            "message": "Transacción de Caja Chica registrada exitosamente"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creando transacción: {str(e)}")
