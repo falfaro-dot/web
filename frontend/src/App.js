@@ -410,7 +410,8 @@ function App() {
     } else if (activeView === 'transactions') {
       loadTransactions();
     } else if (activeView === 'efectivo') {
-      loadEfectivoTransactions();
+      loadCajaChicaTransactions();
+      loadTreasuryClients();
     } else if (activeView === 'cuentas') {
       loadBankAccounts();
       loadBankAccountsWithBalances();
