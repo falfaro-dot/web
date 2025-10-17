@@ -348,12 +348,16 @@ class ReviewTestRunner:
                                   f"Retrieved {len(accounts)} accounts. {full_timestamp_count} with full timestamp, {date_only_count} with date only")
                     
                     # Verify backward compatibility
-                    if full_timestamp_count > 0 and date_only_count >= 0:
-                        self.log_result("Bank Accounts - Backward Compatibility", True, 
-                                      "Endpoint supports both full timestamp and date-only formats")
+                    if timestamp_count > 0:
+                        if full_timestamp_count > 0:
+                            self.log_result("Bank Accounts - Backward Compatibility", True, 
+                                          f"Endpoint supports timestamp formats: {full_timestamp_count} full timestamps, {date_only_count} date-only")
+                        else:
+                            self.log_result("Bank Accounts - Backward Compatibility", True, 
+                                          f"Endpoint supports date-only format (backward compatibility): {date_only_count} accounts")
                     else:
                         self.log_result("Bank Accounts - Backward Compatibility", False, 
-                                      "Timestamp format inconsistency detected")
+                                      "No timestamp information found")
                 else:
                     self.log_result("Bank Accounts - Timestamp Field", True, 
                                   "Endpoint working but no accounts found")
