@@ -425,7 +425,7 @@ class TreasuryTestRunner:
                 'afectacion_origen_destino': 'Abono',  # Should increase bank balance
                 'cantidad': test_amount,
                 'concepto': 'Test abono caja chica con afectación a cuenta bancaria',
-                'ejecutivo': 'Ejecutivo1'
+                'ejecutivo': 'operaciones@ibsgroup.mx'
             }
             
             response = self.session.post(f"{BACKEND_URL}/efectivo/create", data=data)
