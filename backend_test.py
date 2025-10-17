@@ -604,7 +604,7 @@ class TreasuryTestRunner:
         
         if self.results['summary']['failed'] > 0:
             print("\n❌ FAILED TESTS:")
-            for category in ['auth_tests', 'upload_tests', 'treasury_tests', 'dashboard_tests']:
+            for category in ['auth_tests', 'upload_tests', 'treasury_tests', 'cash_tests', 'dashboard_tests']:
                 failed_tests = [t for t in self.results[category] if not t['success']]
                 if failed_tests:
                     print(f"\n{category.upper()}:")
