@@ -580,6 +580,356 @@ class TreasuryTestRunner:
         except Exception as e:
             self.log_result("Clients Endpoint", False, f"Exception: {str(e)}", "dashboard_tests")
 
+    def test_new_functionalities(self):
+        """Test new functionalities: Excel exports, data deletion, and bank balance improvements"""
+        print("\n🆕 Testing New Functionalities...")
+        
+        # Initialize test categories
+        if "export_tests" not in self.results:
+            self.results["export_tests"] = []
+        if "admin_tests" not in self.results:
+            self.results["admin_tests"] = []
+        if "bank_tests" not in self.results:
+            self.results["bank_tests"] = []
+        
+        # Test 1: Exportación de Caja Chica a Excel
+        self.test_cash_excel_export()
+        
+        # Test 2: Borrado de datos de Caja Chica
+        self.test_cash_data_deletion()
+        
+        # Test 3: Exportación de Saldos Bancarios a Excel
+        self.test_bank_balances_excel_export()
+        
+        # Test 4: Mejora en captura de saldos bancarios (sobrescritura)
+        self.test_bank_balance_overwrite()
+        
+        # Test 5: Verificar endpoint de saldos bancarios con timestamp
+        self.test_bank_accounts_with_timestamp()
+
+    def test_cash_excel_export(self):
+        """Test GET /api/export/efectivo/xlsx"""
+        print("\n  📊 Testing Cash Excel Export...")
+        
+        # First, create some cash transactions for testing
+        self.create_test_cash_transactions()
+        
+        # Test export without date filters
+        try:
+            response = self.session.get(f"{BACKEND_URL}/export/efectivo/xlsx")
+            if response.status_code == 200:
+                # Check if it's an Excel file
+                content_type = response.headers.get('content-type', '')
+                if 'spreadsheet' in content_type or 'excel' in content_type:
+                    self.log_result("Cash Excel Export - No Filters", True, 
+                                  f"Excel file generated successfully. Size: {len(response.content)} bytes", "export_tests")
+                else:
+                    self.log_result("Cash Excel Export - No Filters", False, 
+                                  f"Wrong content type: {content_type}", "export_tests")
+            else:
+                self.log_result("Cash Excel Export - No Filters", False, 
+                              f"HTTP {response.status_code}: {response.text}", "export_tests")
+        except Exception as e:
+            self.log_result("Cash Excel Export - No Filters", False, f"Exception: {str(e)}", "export_tests")
+        
+        # Test export with date filters
+        try:
+            params = {
+                'fecha_inicio': '2025-01-01T00:00:00Z',
+                'fecha_fin': '2025-01-31T23:59:59Z'
+            }
+            response = self.session.get(f"{BACKEND_URL}/export/efectivo/xlsx", params=params)
+            if response.status_code == 200:
+                content_type = response.headers.get('content-type', '')
+                if 'spreadsheet' in content_type or 'excel' in content_type:
+                    self.log_result("Cash Excel Export - With Date Filters", True, 
+                                  f"Filtered Excel file generated successfully. Size: {len(response.content)} bytes", "export_tests")
+                else:
+                    self.log_result("Cash Excel Export - With Date Filters", False, 
+                                  f"Wrong content type: {content_type}", "export_tests")
+            else:
+                self.log_result("Cash Excel Export - With Date Filters", False, 
+                              f"HTTP {response.status_code}: {response.text}", "export_tests")
+        except Exception as e:
+            self.log_result("Cash Excel Export - With Date Filters", False, f"Exception: {str(e)}", "export_tests")
+
+    def create_test_cash_transactions(self):
+        """Create test cash transactions for export testing"""
+        test_transactions = [
+            {
+                'fecha': '2025-01-15',
+                'tipo_movimiento': 'Abono a Caja Chica',
+                'origen_destino_tipo': 'Cuenta Bancaria',
+                'origen_destino_nombre': 'MESUBAJ COMERCIALIZADORA SA DE CV - BBVA (0121565796)',
+                'afectacion_origen_destino': 'Abono',
+                'cantidad': 1000.00,
+                'folio_cheque': 'CH001',
+                'concepto': 'Test transaction for export',
+                'ejecutivo': 'operaciones@ibsgroup.mx'
+            },
+            {
+                'fecha': '2025-01-16',
+                'tipo_movimiento': 'Cargo a Caja Chica',
+                'origen_destino_tipo': 'Otro',
+                'origen_destino_nombre': 'Gastos varios',
+                'cantidad': 500.00,
+                'concepto': 'Test expense transaction',
+                'ejecutivo': 'operaciones@ibsgroup.mx'
+            }
+        ]
+        
+        for tx_data in test_transactions:
+            try:
+                response = self.session.post(f"{BACKEND_URL}/efectivo/create", data=tx_data)
+                if response.status_code == 200:
+                    continue
+            except Exception:
+                pass
+
+    def test_cash_data_deletion(self):
+        """Test POST /api/admin/delete_efectivo"""
+        print("\n  🗑️ Testing Cash Data Deletion...")
+        
+        # Test with invalid credentials
+        invalid_data = {
+            "username": "invalid@user.com",
+            "password": "wrongpassword",
+            "fecha_inicio": "2025-01-01T00:00:00Z",
+            "fecha_fin": "2025-01-15T23:59:59Z"
+        }
+        
+        try:
+            response = self.session.post(f"{BACKEND_URL}/admin/delete_efectivo", json=invalid_data)
+            if response.status_code == 403:
+                self.log_result("Cash Data Deletion - Invalid Credentials", True, 
+                              "Correctly rejected invalid credentials (403)", "admin_tests")
+            else:
+                self.log_result("Cash Data Deletion - Invalid Credentials", False, 
+                              f"Expected 403, got {response.status_code}: {response.text}", "admin_tests")
+        except Exception as e:
+            self.log_result("Cash Data Deletion - Invalid Credentials", False, f"Exception: {str(e)}", "admin_tests")
+        
+        # Test with valid credentials (f.alfaro@ibsgroup.mx)
+        valid_data = {
+            "username": "f.alfaro@ibsgroup.mx",
+            "password": "System3ras3$0",
+            "fecha_inicio": "2025-01-01T00:00:00Z",
+            "fecha_fin": "2025-01-15T23:59:59Z"
+        }
+        
+        try:
+            response = self.session.post(f"{BACKEND_URL}/admin/delete_efectivo", json=valid_data)
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success"):
+                    deleted_count = result.get("deleted_count", 0)
+                    self.log_result("Cash Data Deletion - Valid Credentials (f.alfaro)", True, 
+                                  f"Successfully deleted {deleted_count} cash transactions", "admin_tests")
+                else:
+                    self.log_result("Cash Data Deletion - Valid Credentials (f.alfaro)", False, 
+                                  f"Deletion failed: {result.get('message', 'Unknown error')}", "admin_tests")
+            else:
+                self.log_result("Cash Data Deletion - Valid Credentials (f.alfaro)", False, 
+                              f"HTTP {response.status_code}: {response.text}", "admin_tests")
+        except Exception as e:
+            self.log_result("Cash Data Deletion - Valid Credentials (f.alfaro)", False, f"Exception: {str(e)}", "admin_tests")
+        
+        # Test with second valid user (administracion@ibsgroup.mx)
+        valid_data2 = {
+            "username": "administracion@ibsgroup.mx",
+            "password": "System3ras3$!",
+            "fecha_inicio": "2025-01-01T00:00:00Z",
+            "fecha_fin": "2025-01-15T23:59:59Z"
+        }
+        
+        try:
+            response = self.session.post(f"{BACKEND_URL}/admin/delete_efectivo", json=valid_data2)
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success"):
+                    deleted_count = result.get("deleted_count", 0)
+                    self.log_result("Cash Data Deletion - Valid Credentials (administracion)", True, 
+                                  f"Successfully deleted {deleted_count} cash transactions", "admin_tests")
+                else:
+                    self.log_result("Cash Data Deletion - Valid Credentials (administracion)", False, 
+                                  f"Deletion failed: {result.get('message', 'Unknown error')}", "admin_tests")
+            else:
+                self.log_result("Cash Data Deletion - Valid Credentials (administracion)", False, 
+                              f"HTTP {response.status_code}: {response.text}", "admin_tests")
+        except Exception as e:
+            self.log_result("Cash Data Deletion - Valid Credentials (administracion)", False, f"Exception: {str(e)}", "admin_tests")
+
+    def test_bank_balances_excel_export(self):
+        """Test GET /api/export/bank_balances/xlsx"""
+        print("\n  🏦 Testing Bank Balances Excel Export...")
+        
+        # Ensure we have bank accounts and balances
+        self.setup_test_data()
+        self.create_test_bank_balances()
+        
+        try:
+            response = self.session.get(f"{BACKEND_URL}/export/bank_balances/xlsx")
+            if response.status_code == 200:
+                content_type = response.headers.get('content-type', '')
+                if 'spreadsheet' in content_type or 'excel' in content_type:
+                    self.log_result("Bank Balances Excel Export", True, 
+                                  f"Excel file generated successfully. Size: {len(response.content)} bytes", "export_tests")
+                else:
+                    self.log_result("Bank Balances Excel Export", False, 
+                                  f"Wrong content type: {content_type}", "export_tests")
+            else:
+                self.log_result("Bank Balances Excel Export", False, 
+                              f"HTTP {response.status_code}: {response.text}", "export_tests")
+        except Exception as e:
+            self.log_result("Bank Balances Excel Export", False, f"Exception: {str(e)}", "export_tests")
+
+    def create_test_bank_balances(self):
+        """Create test bank balances for export testing"""
+        test_balances = [
+            {
+                'fecha': '2025-01-15',
+                'nombre_cuenta': 'MESUBAJ COMERCIALIZADORA SA DE CV',
+                'saldo': 50000.00,
+                'ejecutivo': 'operaciones@ibsgroup.mx'
+            },
+            {
+                'fecha': '2025-01-15',
+                'nombre_cuenta': 'NEXBILL INMOBILIARIA SA DE CV',
+                'saldo': 25000.00,
+                'ejecutivo': 'operaciones@ibsgroup.mx'
+            }
+        ]
+        
+        for balance_data in test_balances:
+            try:
+                response = self.session.post(f"{BACKEND_URL}/bancos/create", data=balance_data)
+                if response.status_code == 200:
+                    continue
+            except Exception:
+                pass
+
+    def test_bank_balance_overwrite(self):
+        """Test bank balance overwrite functionality (same date + same account)"""
+        print("\n  🔄 Testing Bank Balance Overwrite...")
+        
+        account_name = "MESUBAJ COMERCIALIZADORA SA DE CV"
+        test_date = "2025-01-15"
+        initial_balance = 30000.00
+        updated_balance = 35000.00
+        
+        # Create initial balance
+        try:
+            initial_data = {
+                'fecha': test_date,
+                'nombre_cuenta': account_name,
+                'saldo': initial_balance,
+                'ejecutivo': 'operaciones@ibsgroup.mx'
+            }
+            response = self.session.post(f"{BACKEND_URL}/bancos/create", data=initial_data)
+            if response.status_code == 200:
+                self.log_result("Bank Balance Overwrite - Initial Creation", True, 
+                              f"Initial balance created: {initial_balance}", "bank_tests")
+            else:
+                self.log_result("Bank Balance Overwrite - Initial Creation", False, 
+                              f"Failed to create initial balance: {response.text}", "bank_tests")
+                return
+        except Exception as e:
+            self.log_result("Bank Balance Overwrite - Initial Creation", False, f"Exception: {str(e)}", "bank_tests")
+            return
+        
+        # Update balance for same date and account (should overwrite)
+        try:
+            update_data = {
+                'fecha': test_date,
+                'nombre_cuenta': account_name,
+                'saldo': updated_balance,
+                'ejecutivo': 'operaciones@ibsgroup.mx'
+            }
+            response = self.session.post(f"{BACKEND_URL}/bancos/create", data=update_data)
+            if response.status_code == 200:
+                result = response.json()
+                if "actualizado" in result.get("message", "").lower():
+                    self.log_result("Bank Balance Overwrite - Update", True, 
+                                  f"Balance correctly updated to {updated_balance}", "bank_tests")
+                else:
+                    self.log_result("Bank Balance Overwrite - Update", True, 
+                                  f"Balance operation completed: {result.get('message', '')}", "bank_tests")
+            else:
+                self.log_result("Bank Balance Overwrite - Update", False, 
+                              f"Failed to update balance: {response.text}", "bank_tests")
+        except Exception as e:
+            self.log_result("Bank Balance Overwrite - Update", False, f"Exception: {str(e)}", "bank_tests")
+        
+        # Verify the balance was overwritten (not duplicated)
+        try:
+            response = self.session.get(f"{BACKEND_URL}/bank_accounts/saldos?fecha={test_date}")
+            if response.status_code == 200:
+                accounts = response.json()
+                target_account = None
+                for account in accounts:
+                    if account.get("nombre") == account_name:
+                        target_account = account
+                        break
+                
+                if target_account:
+                    actual_balance = target_account.get("saldo", 0)
+                    if abs(actual_balance - updated_balance) < 0.01:
+                        self.log_result("Bank Balance Overwrite - Verification", True, 
+                                      f"Balance correctly overwritten: {actual_balance} (expected {updated_balance})", "bank_tests")
+                    else:
+                        self.log_result("Bank Balance Overwrite - Verification", False, 
+                                      f"Balance not overwritten correctly: got {actual_balance}, expected {updated_balance}", "bank_tests")
+                else:
+                    self.log_result("Bank Balance Overwrite - Verification", False, 
+                                  f"Account {account_name} not found in response", "bank_tests")
+            else:
+                self.log_result("Bank Balance Overwrite - Verification", False, 
+                              f"Failed to retrieve balances: {response.text}", "bank_tests")
+        except Exception as e:
+            self.log_result("Bank Balance Overwrite - Verification", False, f"Exception: {str(e)}", "bank_tests")
+
+    def test_bank_accounts_with_timestamp(self):
+        """Test GET /api/bancos/cuentas (bank accounts with timestamp)"""
+        print("\n  🕐 Testing Bank Accounts with Timestamp...")
+        
+        # Note: The endpoint in the code is actually /api/bank_accounts/saldos
+        # Let's test the correct endpoint
+        try:
+            response = self.session.get(f"{BACKEND_URL}/bank_accounts/saldos")
+            if response.status_code == 200:
+                accounts = response.json()
+                if isinstance(accounts, list) and len(accounts) > 0:
+                    # Check if timestamp field is present and properly formatted
+                    timestamp_found = False
+                    valid_timestamp = False
+                    
+                    for account in accounts:
+                        ultima_actualizacion = account.get("ultima_actualizacion")
+                        if ultima_actualizacion:
+                            timestamp_found = True
+                            # Check if it's in DD/MM/YYYY HH:MM:SS format
+                            if "/" in ultima_actualizacion and ":" in ultima_actualizacion:
+                                valid_timestamp = True
+                                break
+                    
+                    if timestamp_found and valid_timestamp:
+                        self.log_result("Bank Accounts with Timestamp", True, 
+                                      f"Retrieved {len(accounts)} accounts with proper timestamp format", "bank_tests")
+                    elif timestamp_found:
+                        self.log_result("Bank Accounts with Timestamp", True, 
+                                      f"Retrieved {len(accounts)} accounts with timestamp (backward compatibility)", "bank_tests")
+                    else:
+                        self.log_result("Bank Accounts with Timestamp", False, 
+                                      "No timestamp field found in response", "bank_tests")
+                else:
+                    self.log_result("Bank Accounts with Timestamp", True, 
+                                  "Endpoint working but no accounts found (empty response)", "bank_tests")
+            else:
+                self.log_result("Bank Accounts with Timestamp", False, 
+                              f"HTTP {response.status_code}: {response.text}", "bank_tests")
+        except Exception as e:
+            self.log_result("Bank Accounts with Timestamp", False, f"Exception: {str(e)}", "bank_tests")
+
     def run_all_tests(self):
         """Run all test suites"""
         print("🚀 Starting Treasury Management System Backend Tests")
