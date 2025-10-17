@@ -1101,11 +1101,15 @@ async def delete_efectivo_by_date_range(request: DeleteDataRequest):
         raise HTTPException(status_code=403, detail="No autorizado")
     
     try:
+        # Extract date part only (YYYY-MM-DD) from the timestamps
+        fecha_inicio_str = request.fecha_inicio.split('T')[0] if 'T' in request.fecha_inicio else request.fecha_inicio
+        fecha_fin_str = request.fecha_fin.split('T')[0] if 'T' in request.fecha_fin else request.fecha_fin
+        
         # Delete efectivo transactions in date range
         query = {
             "fecha": {
-                "$gte": request.fecha_inicio,
-                "$lte": request.fecha_fin
+                "$gte": fecha_inicio_str,
+                "$lte": fecha_fin_str
             }
         }
         
