@@ -14,10 +14,10 @@ import time
 BACKEND_URL = "https://cash-flow-mgr-1.preview.emergentagent.com/api"
 TEST_FILE_PATH = "/app/test_layout.xlsm"
 
-# Test credentials
+# Test credentials - Updated to use new email-based system
 VALID_CREDENTIALS = [
-    {"username": "Ejecutivo1", "password": "Ejecutivo1"},
-    {"username": "Ejecutivo2", "password": "Ejecutivo2"}
+    {"username": "operaciones@ibsgroup.mx", "password": "Sistema2"},
+    {"username": "administracion@ibsgroup.mx", "password": "Sistema4"}
 ]
 
 INVALID_CREDENTIALS = [
