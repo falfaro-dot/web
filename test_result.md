@@ -260,3 +260,5 @@ agent_communication:
     message: "Usuario solicitó testing automático del frontend (opción a). Procediendo con testing completo de: login, upload de archivos Excel, navegación, dashboard con filtros, y flujo end-to-end."
   - agent: "testing"
     message: "✅ COMPREHENSIVE FRONTEND TESTING COMPLETE: All critical functionality working perfectly. Login system (both Ejecutivo1 & Ejecutivo2), Excel upload with custom commissions, dashboard with real data display, search filters, navigation, logout - all tested successfully. UI/UX elements (IBS logos, corporate colors, responsive layout) verified. No console errors detected. Treasury Management System is production-ready with excellent user experience."
+  - agent: "main"
+    message: "Usuario solicita testing de funcionalidad 'Afectación a Tesorería' en módulo Caja Chica. Escenarios específicos a probar: 1) Abono en caja chica + Abono a cuenta bancaria (debe aumentar saldo de cuenta bancaria), 2) Abono en caja chica + Abono a tesorería (debe aumentar saldo de tesorería cliente). Endpoint involucrado: POST /api/cash/transactions con campo impact_type. Necesito testing del backend con estos escenarios."
