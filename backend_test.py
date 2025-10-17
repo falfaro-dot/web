@@ -607,6 +607,214 @@ class TreasuryTestRunner:
         # Test 5: Verificar endpoint de saldos bancarios con timestamp
         self.test_bank_accounts_with_timestamp()
 
+    def test_corrections_focus(self):
+        """Test specific corrections mentioned in review request"""
+        print("\n🔧 Testing Specific Corrections from Review Request...")
+        
+        # Initialize test categories
+        if "correction_tests" not in self.results:
+            self.results["correction_tests"] = []
+        
+        # Test 1: Corrección de Borrado de Caja Chica (Date format fix)
+        self.test_cash_deletion_correction()
+        
+        # Test 2: Nueva funcionalidad: Exportación de Catálogo de Cuentas Bancarias
+        self.test_bank_accounts_catalog_export()
+
+    def test_cash_deletion_correction(self):
+        """Test the corrected cash deletion functionality with proper date handling"""
+        print("\n  🗑️ Testing Cash Deletion Correction (Date Format Fix)...")
+        
+        # Step 1: Create test cash transactions with specific dates
+        test_date_range = {
+            "start": "2025-01-10",
+            "end": "2025-01-15"
+        }
+        
+        # Create transactions in the test date range
+        test_transactions = [
+            {
+                'fecha': '2025-01-10',
+                'tipo_movimiento': 'Abono a Caja Chica',
+                'origen_destino_tipo': 'Cuenta Bancaria',
+                'origen_destino_nombre': 'MESUBAJ COMERCIALIZADORA SA DE CV - BBVA (0121565796)',
+                'afectacion_origen_destino': 'Abono',
+                'cantidad': 1000.00,
+                'concepto': 'Test transaction for deletion - Day 1',
+                'ejecutivo': 'operaciones@ibsgroup.mx'
+            },
+            {
+                'fecha': '2025-01-12',
+                'tipo_movimiento': 'Cargo a Caja Chica',
+                'origen_destino_tipo': 'Otro',
+                'origen_destino_nombre': 'Gastos varios',
+                'cantidad': 500.00,
+                'concepto': 'Test transaction for deletion - Day 2',
+                'ejecutivo': 'operaciones@ibsgroup.mx'
+            },
+            {
+                'fecha': '2025-01-15',
+                'tipo_movimiento': 'Abono a Caja Chica',
+                'origen_destino_tipo': 'Tesorería Cliente',
+                'origen_destino_nombre': 'COMERCIALIZADORA ASAP DE CHIHUAHUA ',
+                'afectacion_origen_destino': 'Abono',
+                'cantidad': 2000.00,
+                'concepto': 'Test transaction for deletion - Day 3',
+                'ejecutivo': 'operaciones@ibsgroup.mx'
+            }
+        ]
+        
+        created_transactions = 0
+        for tx_data in test_transactions:
+            try:
+                response = self.session.post(f"{BACKEND_URL}/efectivo/create", data=tx_data)
+                if response.status_code == 200:
+                    created_transactions += 1
+            except Exception as e:
+                pass
+        
+        self.log_result("Cash Deletion - Create Test Transactions", True, 
+                      f"Created {created_transactions} test transactions", "correction_tests")
+        
+        # Step 2: Verify transactions appear in history
+        try:
+            params = {
+                'fecha_inicio': test_date_range["start"],
+                'fecha_fin': test_date_range["end"]
+            }
+            response = self.session.get(f"{BACKEND_URL}/efectivo/transactions", params=params)
+            if response.status_code == 200:
+                transactions_before = response.json()
+                transactions_in_range = len(transactions_before)
+                self.log_result("Cash Deletion - Verify History Before", True, 
+                              f"Found {transactions_in_range} transactions in date range before deletion", "correction_tests")
+            else:
+                self.log_result("Cash Deletion - Verify History Before", False, 
+                              f"Failed to get transactions: {response.text}", "correction_tests")
+                return
+        except Exception as e:
+            self.log_result("Cash Deletion - Verify History Before", False, f"Exception: {str(e)}", "correction_tests")
+            return
+        
+        # Step 3: Call deletion endpoint with timestamp format (as mentioned in review request)
+        delete_data = {
+            "username": "f.alfaro@ibsgroup.mx",
+            "password": "System3ras3$0",
+            "fecha_inicio": "2025-01-10T00:00:00Z",  # Timestamp format as mentioned in review
+            "fecha_fin": "2025-01-15T23:59:59Z"
+        }
+        
+        try:
+            response = self.session.post(f"{BACKEND_URL}/admin/delete_efectivo", json=delete_data)
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success"):
+                    deleted_count = result.get("deleted_count", 0)
+                    self.log_result("Cash Deletion - Execute Deletion", True, 
+                                  f"Successfully deleted {deleted_count} transactions", "correction_tests")
+                else:
+                    self.log_result("Cash Deletion - Execute Deletion", False, 
+                                  f"Deletion failed: {result.get('message', 'Unknown error')}", "correction_tests")
+                    return
+            else:
+                self.log_result("Cash Deletion - Execute Deletion", False, 
+                              f"HTTP {response.status_code}: {response.text}", "correction_tests")
+                return
+        except Exception as e:
+            self.log_result("Cash Deletion - Execute Deletion", False, f"Exception: {str(e)}", "correction_tests")
+            return
+        
+        # Step 4: Verify transactions are gone from history
+        try:
+            params = {
+                'fecha_inicio': test_date_range["start"],
+                'fecha_fin': test_date_range["end"]
+            }
+            response = self.session.get(f"{BACKEND_URL}/efectivo/transactions", params=params)
+            if response.status_code == 200:
+                transactions_after = response.json()
+                transactions_remaining = len(transactions_after)
+                
+                if transactions_remaining < transactions_in_range:
+                    self.log_result("Cash Deletion - Verify History After", True, 
+                                  f"Transactions correctly removed from history: {transactions_in_range} → {transactions_remaining}", "correction_tests")
+                else:
+                    self.log_result("Cash Deletion - Verify History After", False, 
+                                  f"Transactions NOT removed from history: still {transactions_remaining} transactions", "correction_tests")
+            else:
+                self.log_result("Cash Deletion - Verify History After", False, 
+                              f"Failed to get transactions after deletion: {response.text}", "correction_tests")
+        except Exception as e:
+            self.log_result("Cash Deletion - Verify History After", False, f"Exception: {str(e)}", "correction_tests")
+
+    def test_bank_accounts_catalog_export(self):
+        """Test the new bank accounts catalog export functionality"""
+        print("\n  📊 Testing Bank Accounts Catalog Export...")
+        
+        # Ensure we have bank accounts data
+        try:
+            response = self.session.post(f"{BACKEND_URL}/bank_accounts/bulk_insert")
+            if response.status_code == 200:
+                self.log_result("Bank Catalog Export - Setup Data", True, "Bank accounts data initialized", "correction_tests")
+            else:
+                self.log_result("Bank Catalog Export - Setup Data", False, f"Failed to setup data: {response.text}", "correction_tests")
+        except Exception as e:
+            self.log_result("Bank Catalog Export - Setup Data", False, f"Exception: {str(e)}", "correction_tests")
+        
+        # Test the new export endpoint
+        try:
+            response = self.session.get(f"{BACKEND_URL}/export/bank_accounts_catalog/xlsx")
+            if response.status_code == 200:
+                # Check if it's an Excel file
+                content_type = response.headers.get('content-type', '')
+                content_disposition = response.headers.get('content-disposition', '')
+                
+                if 'spreadsheet' in content_type or 'excel' in content_type:
+                    self.log_result("Bank Catalog Export - File Generation", True, 
+                                  f"Excel file generated successfully. Size: {len(response.content)} bytes", "correction_tests")
+                    
+                    # Check filename in content-disposition
+                    if 'catalogo_cuentas_bancarias.xlsx' in content_disposition:
+                        self.log_result("Bank Catalog Export - Filename Check", True, 
+                                      "Correct filename in response headers", "correction_tests")
+                    else:
+                        self.log_result("Bank Catalog Export - Filename Check", False, 
+                                      f"Unexpected filename: {content_disposition}", "correction_tests")
+                else:
+                    self.log_result("Bank Catalog Export - File Generation", False, 
+                                  f"Wrong content type: {content_type}", "correction_tests")
+            else:
+                self.log_result("Bank Catalog Export - File Generation", False, 
+                              f"HTTP {response.status_code}: {response.text}", "correction_tests")
+        except Exception as e:
+            self.log_result("Bank Catalog Export - File Generation", False, f"Exception: {str(e)}", "correction_tests")
+        
+        # Verify we have bank accounts to export
+        try:
+            response = self.session.get(f"{BACKEND_URL}/bank_accounts")
+            if response.status_code == 200:
+                accounts = response.json()
+                if isinstance(accounts, list) and len(accounts) > 0:
+                    # Check if accounts have required fields
+                    sample_account = accounts[0]
+                    required_fields = ["estructura", "nivel", "tipo_movimiento", "nombre", "banco", "cuenta", "clabe"]
+                    missing_fields = [field for field in required_fields if field not in sample_account]
+                    
+                    if not missing_fields:
+                        self.log_result("Bank Catalog Export - Data Validation", True, 
+                                      f"All required fields present in {len(accounts)} accounts", "correction_tests")
+                    else:
+                        self.log_result("Bank Catalog Export - Data Validation", False, 
+                                      f"Missing fields in account data: {missing_fields}", "correction_tests")
+                else:
+                    self.log_result("Bank Catalog Export - Data Validation", False, 
+                                  "No bank accounts found for export", "correction_tests")
+            else:
+                self.log_result("Bank Catalog Export - Data Validation", False, 
+                              f"Failed to get bank accounts: {response.text}", "correction_tests")
+        except Exception as e:
+            self.log_result("Bank Catalog Export - Data Validation", False, f"Exception: {str(e)}", "correction_tests")
+
     def test_cash_excel_export(self):
         """Test GET /api/export/efectivo/xlsx"""
         print("\n  📊 Testing Cash Excel Export...")
