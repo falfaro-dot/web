@@ -241,6 +241,18 @@ frontend:
         agent: "testing"
         comment: "✅ PASSED: Dashboard functionality working excellently. Treasury balance table shows 2 clients with proper currency formatting ($48,150.00, $91,582.00) and positive balance colors (green). Transaction history table displays 16+ transactions with all financial data correctly formatted. Search filters working: client name filter, date range filters, and combined filters all functional. Data loads properly from backend APIs."
 
+  - task: "UI Caja Chica con Afectación a Tesorería"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implementada interfaz de usuario para captura de movimientos de caja chica con dropdown 'Afectación a Tesorería'. Permite especificar si el movimiento debe aumentar o disminuir saldos de cuentas bancarias o tesorerías. Incluye mensajes de advertencia dinámicos. Necesita testing end-to-end de escenarios: 1) Abono caja chica + Abono cuenta bancaria, 2) Abono caja chica + Abono tesorería."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
