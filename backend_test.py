@@ -348,10 +348,13 @@ class TreasuryTestRunner:
         except Exception as e:
             self.log_result("Setup Bank Accounts", False, f"Exception setting up bank accounts: {str(e)}", "cash_tests")
     
-    def get_bank_balance(self, account_name):
+    def get_bank_balance(self, account_name, fecha=None):
         """Get current balance for a specific bank account"""
         try:
-            response = self.session.get(f"{BACKEND_URL}/bank_accounts/saldos")
+            url = f"{BACKEND_URL}/bank_accounts/saldos"
+            if fecha:
+                url += f"?fecha={fecha}"
+            response = self.session.get(url)
             if response.status_code == 200:
                 accounts = response.json()
                 for account in accounts:
