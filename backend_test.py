@@ -180,7 +180,7 @@ class TreasuryTestRunner:
             comision=5.0,
             comision_estructura=2.5,
             clasificacion="Abono a Tesorería",
-            ejecutivo="Ejecutivo1"
+            ejecutivo="operaciones@ibsgroup.mx"
         )
         
         # Test with custom commission rates
