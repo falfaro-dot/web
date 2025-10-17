@@ -1735,6 +1735,51 @@ function App() {
         </div>
       )}
 
+
+      {/* Delete Confirmation Modal for Transactions */}
+      {deleteConfirmModalOpen && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirmModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>⚠️ Confirmar Eliminación</h2>
+            <p className="warning-text">ADVERTENCIA: Esta acción eliminará permanentemente todas las transacciones en el rango de fechas seleccionado.</p>
+            <p><strong>Fecha Inicio:</strong> {deleteDateStart}</p>
+            <p><strong>Fecha Fin:</strong> {deleteDateEnd}</p>
+            <p><strong>Usuario:</strong> {deleteUsername}</p>
+            
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setDeleteConfirmModalOpen(false)}>
+                Cancelar
+              </button>
+              <button className="btn-danger" onClick={executeDeleteData}>
+                Confirmar Eliminación
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal for Caja Chica */}
+      {deleteCajaConfirmModalOpen && (
+        <div className="modal-overlay" onClick={() => setDeleteCajaConfirmModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>⚠️ Confirmar Eliminación</h2>
+            <p className="warning-text">ADVERTENCIA: Esta acción eliminará permanentemente todos los movimientos de Caja Chica en el rango de fechas seleccionado.</p>
+            <p><strong>Fecha Inicio:</strong> {deleteCajaDateStart}</p>
+            <p><strong>Fecha Fin:</strong> {deleteCajaDateEnd}</p>
+            <p><strong>Usuario:</strong> {deleteCajaUsername}</p>
+            
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setDeleteCajaConfirmModalOpen(false)}>
+                Cancelar
+              </button>
+              <button className="btn-danger" onClick={executeDeleteCajaData}>
+                Confirmar Eliminación
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       
         {activeView === 'cuentas' && (
           <div className="cuentas-section">
