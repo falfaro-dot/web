@@ -402,7 +402,7 @@ class TreasuryTestRunner:
                     'fecha': '2025-01-15',
                     'nombre_cuenta': account_name,
                     'saldo': 10000.00,  # Initial balance
-                    'ejecutivo': 'Ejecutivo1'
+                    'ejecutivo': 'operaciones@ibsgroup.mx'
                 }
                 response = self.session.post(f"{BACKEND_URL}/bancos/create", data=data)
                 if response.status_code == 200:
