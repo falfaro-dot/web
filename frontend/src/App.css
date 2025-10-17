@@ -669,6 +669,15 @@ body {
   white-space: nowrap;
 }
 
+.afectacion-select {
+  border: 2px solid #C5B77D;
+  font-weight: 600;
+}
+
+.afectacion-select option {
+  padding: 10px;
+}
+
 .modal-actions {
   display: flex;
   gap: 15px;
