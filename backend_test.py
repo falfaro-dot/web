@@ -437,7 +437,7 @@ class TreasuryTestRunner:
                     
                     # Verify bank balance increased
                     time.sleep(1)  # Small delay to ensure database update
-                    new_balance = self.get_bank_balance(account_name)
+                    new_balance = self.get_bank_balance(account_name, "2025-01-15")
                     
                     if new_balance is not None:
                         expected_balance = initial_balance + test_amount
