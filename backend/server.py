@@ -1092,20 +1092,47 @@ async def create_bank_balance(
     saldo: float = Form(...),
     ejecutivo: str = Form(...)
 ):
-    """Create bank balance entry"""
+    """Create or update bank balance entry"""
     try:
-        bank_balance = BankBalance(
-            fecha=fecha,
-            nombre_cuenta=nombre_cuenta,
-            saldo=saldo,
-            ejecutivo=ejecutivo
-        )
-        await db.bank_balances.insert_one(bank_balance.dict())
+        # Generate timestamp in DD/MM/YYYY HH:MM:SS format
+        now = datetime.now(timezone.utc)
+        timestamp = now.strftime("%d/%m/%Y %H:%M:%S")
         
-        return {
-            "success": True,
-            "message": "Saldo bancario registrado exitosamente"
-        }
+        # Check if balance already exists for this account and date
+        existing_balance = await db.bank_balances.find_one({
+            "fecha": fecha,
+            "nombre_cuenta": nombre_cuenta
+        })
+        
+        if existing_balance:
+            # Update existing balance (sobrescribir)
+            await db.bank_balances.update_one(
+                {"_id": existing_balance["_id"]},
+                {"$set": {
+                    "saldo": saldo,
+                    "ejecutivo": ejecutivo,
+                    "timestamp": timestamp
+                }}
+            )
+            return {
+                "success": True,
+                "message": "Saldo bancario actualizado exitosamente"
+            }
+        else:
+            # Create new balance entry
+            bank_balance = BankBalance(
+                fecha=fecha,
+                nombre_cuenta=nombre_cuenta,
+                saldo=saldo,
+                ejecutivo=ejecutivo,
+                timestamp=timestamp
+            )
+            await db.bank_balances.insert_one(bank_balance.dict())
+            
+            return {
+                "success": True,
+                "message": "Saldo bancario registrado exitosamente"
+            }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error registrando saldo: {str(e)}")
 
