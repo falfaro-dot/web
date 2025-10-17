@@ -3,7 +3,7 @@
 ## ✅ Estado Actual de la Aplicación
 
 Su aplicación **YA ESTÁ DESPLEGADA Y FUNCIONANDO** en la web en:
-**URL:** https://finance-parser-4.preview.emergentagent.com
+**URL:** https://cash-flow-mgr-1.preview.emergentagent.com
 
 ### Elementos ya Configurados:
 
@@ -364,7 +364,7 @@ sudo systemctl reload nginx
 ## 🆘 Soporte
 
 Para más información sobre despliegue en Emergent (plataforma actual):
-- La aplicación ya está funcionando en: https://finance-parser-4.preview.emergentagent.com
+- La aplicación ya está funcionando en: https://cash-flow-mgr-1.preview.emergentagent.com
 - Esta es una URL de preview que funciona perfectamente para acceso web
 
 Para un dominio personalizado (ej: operaciones.ibsgroup.mx), necesitarás:

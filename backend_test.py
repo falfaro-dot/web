@@ -11,7 +11,7 @@ from pathlib import Path
 import time
 
 # Configuration
-BACKEND_URL = "https://finance-parser-4.preview.emergentagent.com/api"
+BACKEND_URL = "https://cash-flow-mgr-1.preview.emergentagent.com/api"
 TEST_FILE_PATH = "/app/test_layout.xlsm"
 
 # Test credentials
