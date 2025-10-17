@@ -312,10 +312,10 @@ function App() {
     try {
       const fecha = searchDateEnd || searchDateStart || new Date().toISOString().split('T')[0];
       
-      // Efectivo
-      const efectivoResp = await fetch(`${BACKEND_URL}/api/efectivo/saldo?fecha=${fecha}`);
-      const efectivoData = await efectivoResp.json();
-      setEfectivoSaldo(efectivoData.saldo);
+      // Caja Chica (was Efectivo)
+      const cajaResp = await fetch(`${BACKEND_URL}/api/efectivo/saldo?fecha=${fecha}`);
+      const cajaData = await cajaResp.json();
+      setCajaSaldo(cajaData.saldo);
       
       // Bancos
       const bancosResp = await fetch(`${BACKEND_URL}/api/bancos/saldo_total?fecha=${fecha}`);
