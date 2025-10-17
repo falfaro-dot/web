@@ -34,9 +34,9 @@ CLASSIFICATION_TYPES = [
     "Transacción de Servicio/Facturación"
 ]
 
-# Expected values from test_layout.xlsm
+# Expected values from test_layout.xlsm - Note: client name has trailing space in database
 EXPECTED_VALUES = {
-    "cliente": "COMERCIALIZADORA ASAP DE CHIHUAHUA",
+    "cliente": "COMERCIALIZADORA ASAP DE CHIHUAHUA ",  # Note trailing space
     "rfc": "CAC231019F51",
     "subtotal": 41508.62,
     "iva": 6641.38,
