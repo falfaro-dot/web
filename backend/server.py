@@ -1406,7 +1406,7 @@ async def get_bank_accounts_with_balances(fecha: Optional[str] = None):
                 "nivel": account["nivel"],
                 "tipo_movimiento": account["tipo_movimiento"],
                 "saldo": balance_record["saldo"] if balance_record else 0.0,
-                "ultima_actualizacion": balance_record["fecha"] if balance_record else None
+                "ultima_actualizacion": balance_record.get("timestamp", balance_record.get("fecha")) if balance_record else None
             })
         
         return serialize_doc(result)
