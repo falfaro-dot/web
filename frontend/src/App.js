@@ -1822,13 +1822,24 @@ function App() {
             <div className="section-card">
               <div className="transactions-header">
                 <h2>💰 Saldos de Cuentas Bancarias</h2>
-                <button
-                  className="btn-secondary"
-                  onClick={initializeBankAccounts}
-                  style={{padding: '10px 20px'}}
-                >
-                  🔄 Inicializar Cuentas Base
-                </button>
+                <div className="export-buttons">
+                  <button
+                    className="btn-export"
+                    onClick={() => {
+                      const url = `${BACKEND_URL}/api/export/bank_balances/xlsx`;
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    📥 Descargar Excel
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    onClick={initializeBankAccounts}
+                    style={{padding: '10px 20px'}}
+                  >
+                    🔄 Inicializar Cuentas Base
+                  </button>
+                </div>
               </div>
               <div className="table-container">
                 <table className="data-table">
