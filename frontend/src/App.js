@@ -479,6 +479,12 @@ function App() {
 
   // Delete Caja Chica data by date range
   const handleDeleteCajaData = async () => {
+    console.log('handleDeleteCajaData called');
+    console.log('deleteCajaDateStart:', deleteCajaDateStart);
+    console.log('deleteCajaDateEnd:', deleteCajaDateEnd);
+    console.log('deleteCajaUsername:', deleteCajaUsername);
+    console.log('deleteCajaPassword:', deleteCajaPassword ? '***' : 'empty');
+    
     if (!deleteCajaDateStart || !deleteCajaDateEnd) {
       alert('Por favor seleccione ambas fechas');
       return;
