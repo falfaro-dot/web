@@ -322,6 +322,192 @@ class TreasuryTestRunner:
         except Exception as e:
             self.log_result("Treasury Cargo Upload", False, f"Exception uploading Cargo: {str(e)}", "treasury_tests")
 
+    def test_cash_treasury_impact(self):
+        """Test Afectación a Tesorería functionality in Caja Chica"""
+        print("\n💸 Testing Cash Treasury Impact (Afectación a Tesorería)...")
+        
+        # First, ensure we have bank accounts and treasury data
+        self.setup_test_data()
+        
+        # Test Scenario 1: Abono en caja chica + Abono a cuenta bancaria
+        self.test_cash_to_bank_impact()
+        
+        # Test Scenario 2: Abono en caja chica + Abono a tesorería
+        self.test_cash_to_treasury_impact()
+    
+    def setup_test_data(self):
+        """Setup initial test data for cash treasury impact tests"""
+        try:
+            # Create bank accounts if they don't exist
+            response = self.session.post(f"{BACKEND_URL}/bank_accounts/bulk_insert")
+            if response.status_code == 200:
+                self.log_result("Setup Bank Accounts", True, "Bank accounts initialized", "cash_tests")
+            else:
+                self.log_result("Setup Bank Accounts", False, f"Failed to setup bank accounts: {response.text}", "cash_tests")
+        except Exception as e:
+            self.log_result("Setup Bank Accounts", False, f"Exception setting up bank accounts: {str(e)}", "cash_tests")
+    
+    def get_bank_balance(self, account_name):
+        """Get current balance for a specific bank account"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/bank_accounts/saldos")
+            if response.status_code == 200:
+                accounts = response.json()
+                for account in accounts:
+                    if account.get("nombre") == account_name:
+                        return account.get("saldo", 0.0)
+                return 0.0
+            else:
+                return None
+        except Exception as e:
+            return None
+    
+    def get_treasury_balance(self, client_name):
+        """Get current treasury balance for a specific client"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/dashboard/treasury")
+            if response.status_code == 200:
+                treasuries = response.json()
+                for treasury in treasuries:
+                    if treasury.get("client_name") == client_name:
+                        return treasury.get("balance", 0.0)
+                return 0.0
+            else:
+                return None
+        except Exception as e:
+            return None
+    
+    def test_cash_to_bank_impact(self):
+        """Test Abono en caja chica + Abono a cuenta bancaria"""
+        print("\n  🏦 Testing Cash to Bank Account Impact...")
+        
+        # Use a known bank account from the bulk insert
+        account_name = "MESUBAJ COMERCIALIZADORA SA DE CV"
+        test_amount = 5000.00
+        
+        # Get initial bank balance
+        initial_balance = self.get_bank_balance(account_name)
+        if initial_balance is None:
+            self.log_result("Cash to Bank - Get Initial Balance", False, "Could not retrieve initial bank balance", "cash_tests")
+            return
+        
+        # Create initial balance record if account has no balance
+        if initial_balance == 0.0:
+            try:
+                data = {
+                    'fecha': '2025-01-15',
+                    'nombre_cuenta': account_name,
+                    'saldo': 10000.00,  # Initial balance
+                    'ejecutivo': 'Ejecutivo1'
+                }
+                response = self.session.post(f"{BACKEND_URL}/bancos/create", data=data)
+                if response.status_code == 200:
+                    initial_balance = 10000.00
+                    self.log_result("Cash to Bank - Setup Initial Balance", True, f"Set initial balance to {initial_balance}", "cash_tests")
+                else:
+                    self.log_result("Cash to Bank - Setup Initial Balance", False, f"Failed to set initial balance: {response.text}", "cash_tests")
+                    return
+            except Exception as e:
+                self.log_result("Cash to Bank - Setup Initial Balance", False, f"Exception setting initial balance: {str(e)}", "cash_tests")
+                return
+        
+        # Create cash transaction with bank account impact
+        try:
+            data = {
+                'fecha': '2025-01-15',
+                'tipo_movimiento': 'Abono a Caja Chica',
+                'origen_destino_tipo': 'Cuenta Bancaria',
+                'origen_destino_nombre': f"{account_name} - BBVA (0121565796)",
+                'afectacion_origen_destino': 'Abono',  # Should increase bank balance
+                'cantidad': test_amount,
+                'concepto': 'Test abono caja chica con afectación a cuenta bancaria',
+                'ejecutivo': 'Ejecutivo1'
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/efectivo/create", data=data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success"):
+                    self.log_result("Cash to Bank - Transaction Created", True, "Cash transaction created successfully", "cash_tests")
+                    
+                    # Verify bank balance increased
+                    time.sleep(1)  # Small delay to ensure database update
+                    new_balance = self.get_bank_balance(account_name)
+                    
+                    if new_balance is not None:
+                        expected_balance = initial_balance + test_amount
+                        if abs(new_balance - expected_balance) < 0.01:
+                            self.log_result("Cash to Bank - Balance Verification", True, 
+                                          f"Bank balance correctly increased from {initial_balance} to {new_balance} (expected {expected_balance})", "cash_tests")
+                        else:
+                            self.log_result("Cash to Bank - Balance Verification", False, 
+                                          f"Bank balance incorrect: got {new_balance}, expected {expected_balance} (initial: {initial_balance})", "cash_tests")
+                    else:
+                        self.log_result("Cash to Bank - Balance Verification", False, "Could not retrieve updated bank balance", "cash_tests")
+                else:
+                    self.log_result("Cash to Bank - Transaction Created", False, f"Transaction failed: {result.get('message', 'Unknown error')}", "cash_tests")
+            else:
+                self.log_result("Cash to Bank - Transaction Created", False, f"HTTP {response.status_code}: {response.text}", "cash_tests")
+                
+        except Exception as e:
+            self.log_result("Cash to Bank - Transaction Created", False, f"Exception: {str(e)}", "cash_tests")
+    
+    def test_cash_to_treasury_impact(self):
+        """Test Abono en caja chica + Abono a tesorería"""
+        print("\n  🏛️ Testing Cash to Treasury Impact...")
+        
+        client_name = "COMERCIALIZADORA ASAP DE CHIHUAHUA"
+        test_amount = 5000.00
+        
+        # Get initial treasury balance
+        initial_balance = self.get_treasury_balance(client_name)
+        if initial_balance is None:
+            self.log_result("Cash to Treasury - Get Initial Balance", False, "Could not retrieve initial treasury balance", "cash_tests")
+            return
+        
+        # Create cash transaction with treasury impact
+        try:
+            data = {
+                'fecha': '2025-01-15',
+                'tipo_movimiento': 'Abono a Caja Chica',
+                'origen_destino_tipo': 'Tesorería Cliente',
+                'origen_destino_nombre': client_name,
+                'afectacion_origen_destino': 'Abono',  # Should increase treasury balance
+                'cantidad': test_amount,
+                'concepto': 'Test abono caja chica con afectación a tesorería cliente',
+                'ejecutivo': 'Ejecutivo1'
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/efectivo/create", data=data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success"):
+                    self.log_result("Cash to Treasury - Transaction Created", True, "Cash transaction created successfully", "cash_tests")
+                    
+                    # Verify treasury balance increased
+                    time.sleep(1)  # Small delay to ensure database update
+                    new_balance = self.get_treasury_balance(client_name)
+                    
+                    if new_balance is not None:
+                        expected_balance = initial_balance + test_amount
+                        if abs(new_balance - expected_balance) < 0.01:
+                            self.log_result("Cash to Treasury - Balance Verification", True, 
+                                          f"Treasury balance correctly increased from {initial_balance} to {new_balance} (expected {expected_balance})", "cash_tests")
+                        else:
+                            self.log_result("Cash to Treasury - Balance Verification", False, 
+                                          f"Treasury balance incorrect: got {new_balance}, expected {expected_balance} (initial: {initial_balance})", "cash_tests")
+                    else:
+                        self.log_result("Cash to Treasury - Balance Verification", False, "Could not retrieve updated treasury balance", "cash_tests")
+                else:
+                    self.log_result("Cash to Treasury - Transaction Created", False, f"Transaction failed: {result.get('message', 'Unknown error')}", "cash_tests")
+            else:
+                self.log_result("Cash to Treasury - Transaction Created", False, f"HTTP {response.status_code}: {response.text}", "cash_tests")
+                
+        except Exception as e:
+            self.log_result("Cash to Treasury - Transaction Created", False, f"Exception: {str(e)}", "cash_tests")
+
     def test_dashboard_endpoints(self):
         """Test dashboard API endpoints"""
         print("\n📊 Testing Dashboard Endpoints...")
