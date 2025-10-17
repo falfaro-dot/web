@@ -461,7 +461,7 @@ class TreasuryTestRunner:
         """Test Abono en caja chica + Abono a tesorería"""
         print("\n  🏛️ Testing Cash to Treasury Impact...")
         
-        client_name = "COMERCIALIZADORA ASAP DE CHIHUAHUA"
+        client_name = "COMERCIALIZADORA ASAP DE CHIHUAHUA "  # Note trailing space
         test_amount = 5000.00
         
         # Get initial treasury balance
