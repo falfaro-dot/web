@@ -258,11 +258,11 @@ frontend:
 
   - task: "Exportación y Borrado de Datos en Caja Chica"
     implemented: true
-    working: true
+    working: "NA"
     file: "/app/backend/server.py, /app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -270,6 +270,24 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED: Exportación y Borrado de Caja Chica funcionando correctamente. Excel Export: GET /api/export/efectivo/xlsx genera archivos Excel con headers correctos (Fecha, Tipo Movimiento, Origen/Destino Tipo, Origen/Destino Nombre, Afectación, Cantidad, Folio/Cheque, Concepto, Usuario). Funciona con y sin filtros de fecha. Borrado de datos: POST /api/admin/delete_efectivo autentica correctamente usuarios autorizados (f.alfaro@ibsgroup.mx/System3ras3$0 y administracion@ibsgroup.mx/System3ras3$!), rechaza credenciales inválidas (403), y elimina registros en rango de fechas especificado. Retorna número de registros eliminados correctamente."
+      - working: false
+        agent: "user"
+        comment: "Usuario reporta que el botón de borrar datos en Caja Chica no borra el historial, solo afecta el totalizador del dashboard. Necesita corrección."
+      - working: "NA"
+        agent: "main"
+        comment: "Corregido endpoint /api/admin/delete_efectivo. El problema era que las fechas enviadas incluían timestamp (2025-01-15T00:00:00Z) pero las fechas en BD son strings simples (2025-01-15). Agregada lógica para extraer solo la parte de fecha (split por 'T') antes de hacer el query. Ahora debería borrar correctamente del historial de efectivo_transactions."
+
+  - task: "Exportación de Catálogo de Cuentas Bancarias"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implementado botón 'Descargar Excel' en sección 'Catálogo de Cuentas Bancarias'. Endpoint creado: GET /api/export/bank_accounts_catalog/xlsx para exportar todas las cuentas con estructura, nivel, tipo, nombre, banco, cuenta y CLABE."
 
   - task: "Exportación de Saldos de Cuentas Bancarias"
     implemented: true
