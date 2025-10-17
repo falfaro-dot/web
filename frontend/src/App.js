@@ -43,6 +43,7 @@ function App() {
   const [cajaTipoMovimiento, setCajaTipoMovimiento] = useState('Abono a Caja Chica');
   const [cajaOrigenDestinoTipo, setCajaOrigenDestinoTipo] = useState('Tesorería Cliente');
   const [cajaOrigenDestinoNombre, setCajaOrigenDestinoNombre] = useState('');
+  const [cajaAfectacionOrigenDestino, setCajaAfectacionOrigenDestino] = useState('Cargo');
   const [cajaCantidad, setCajaCantidad] = useState('');
   const [cajaFolioCheque, setCajaFolioCheque] = useState('');
   const [cajaConcepto, setCajaConcepto] = useState('');
