@@ -189,7 +189,7 @@ class TreasuryTestRunner:
             comision=7.5,
             comision_estructura=3.0,
             clasificacion="Transacción Fondeada Directamente",
-            ejecutivo="Ejecutivo2"
+            ejecutivo="administracion@ibsgroup.mx"
         )
         
         # Test all classification types
