@@ -258,15 +258,18 @@ frontend:
 
   - task: "Exportación y Borrado de Datos en Caja Chica"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py, /app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implementados botones de 'Descargar Excel' y 'Borrar Datos' en Historial de Movimientos - Caja Chica. Endpoints creados: GET /api/export/efectivo/xlsx para exportar a Excel, POST /api/admin/delete_efectivo para borrar datos con autenticación especial (mismos usuarios que transacciones). Modal de borrado con validación de credenciales implementado."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Exportación y Borrado de Caja Chica funcionando correctamente. Excel Export: GET /api/export/efectivo/xlsx genera archivos Excel con headers correctos (Fecha, Tipo Movimiento, Origen/Destino Tipo, Origen/Destino Nombre, Afectación, Cantidad, Folio/Cheque, Concepto, Usuario). Funciona con y sin filtros de fecha. Borrado de datos: POST /api/admin/delete_efectivo autentica correctamente usuarios autorizados (f.alfaro@ibsgroup.mx/System3ras3$0 y administracion@ibsgroup.mx/System3ras3$!), rechaza credenciales inválidas (403), y elimina registros en rango de fechas especificado. Retorna número de registros eliminados correctamente."
 
   - task: "Exportación de Saldos de Cuentas Bancarias"
     implemented: true
