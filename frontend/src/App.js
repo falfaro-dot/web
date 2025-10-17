@@ -216,17 +216,20 @@ function App() {
     }
   };
   
-  // Handle efectivo submission
-  const handleEfectivoSubmit = async (e) => {
+  // Handle Caja Chica submission
+  const handleCajaChicaSubmit = async (e) => {
     e.preventDefault();
-    setEfectivoMessage('');
+    setCajaMessage('');
     
     try {
       const formData = new FormData();
-      formData.append('fecha', efectivoFecha);
-      formData.append('cliente', efectivoCliente);
-      formData.append('cantidad', efectivoCantidad);
-      formData.append('tipo', efectivoTipo);
+      formData.append('fecha', cajaFecha);
+      formData.append('tipo_movimiento', cajaTipoMovimiento);
+      formData.append('origen_destino_tipo', cajaOrigenDestinoTipo);
+      formData.append('origen_destino_nombre', cajaOrigenDestinoNombre);
+      formData.append('cantidad', cajaCantidad);
+      formData.append('folio_cheque', cajaFolioCheque);
+      formData.append('concepto', cajaConcepto);
       formData.append('ejecutivo', currentUser);
       
       const response = await fetch(`${BACKEND_URL}/api/efectivo/create`, {
@@ -236,13 +239,16 @@ function App() {
       
       const data = await response.json();
       if (data.success) {
-        setEfectivoMessage('✓ Transacción registrada exitosamente');
-        setEfectivoFecha('');
-        setEfectivoCliente('');
-        setEfectivoCantidad('');
+        setCajaMessage('✓ Transacción de Caja Chica registrada exitosamente');
+        setCajaFecha('');
+        setCajaOrigenDestinoNombre('');
+        setCajaCantidad('');
+        setCajaFolioCheque('');
+        setCajaConcepto('');
+        loadCajaChicaTransactions();
       }
     } catch (error) {
-      setEfectivoMessage('✗ Error: ' + error.message);
+      setCajaMessage('✗ Error: ' + error.message);
     }
   };
   
