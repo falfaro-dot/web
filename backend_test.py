@@ -49,6 +49,7 @@ class TreasuryTestRunner:
             "auth_tests": [],
             "upload_tests": [],
             "treasury_tests": [],
+            "cash_tests": [],
             "dashboard_tests": [],
             "errors": [],
             "summary": {"passed": 0, "failed": 0, "total": 0}
