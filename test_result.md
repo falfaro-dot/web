@@ -288,15 +288,18 @@ frontend:
 
   - task: "Mejora en Captura de Saldos Bancarios"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Modificado endpoint POST /api/bancos/captura para sobrescribir saldos existentes cuando se captura el mismo día y cuenta. Agregado campo 'timestamp' al modelo BankBalance con formato DD/MM/YYYY HH:MM:SS. Campo 'Última Actualización' ahora muestra timestamp completo en lugar de solo fecha."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Mejora en Captura de Saldos Bancarios funcionando correctamente. POST /api/bancos/create (endpoint correcto, no /api/bancos/captura) sobrescribe saldos existentes cuando se captura misma fecha + misma cuenta (no crea registro duplicado). Timestamp se genera correctamente en formato DD/MM/YYYY HH:MM:SS (ej: 17/10/2025 21:50:37). GET /api/bank_accounts/saldos retorna campo 'ultima_actualizacion' con timestamp completo cuando disponible, mantiene backward compatibility con formato fecha-solo. Funcionalidad de sobrescritura verificada: balance inicial 50000.00 → actualizado a 75000.00 correctamente."
 
 metadata:
   created_by: "main_agent"
