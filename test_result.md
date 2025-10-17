@@ -165,6 +165,18 @@ backend:
         agent: "testing"
         comment: "✅ PASSED: Treasury balance management working correctly. Successfully tested 'Abono a Tesorería' (adds to balance) and 'Cargo/Retiro de Tesorería' (subtracts from balance). Balance updates properly stored in database."
 
+  - task: "Funcionalidad Afectación a Tesorería en Caja Chica"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implementada funcionalidad de Afectación a Tesorería en endpoint /api/cash/transactions. Permite especificar si un movimiento de caja chica debe afectar (Cargo/Abono) a cuentas bancarias o tesorerías de clientes. Necesita testing de escenarios: 1) Abono en caja chica + Abono a cuenta bancaria, 2) Abono en caja chica + Abono a tesorería."
+
   - task: "Endpoints de dashboard"
     implemented: true
     working: true
