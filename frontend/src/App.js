@@ -1648,6 +1648,69 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Delete Caja Chica Data Modal */}
+      {deleteCajaModalOpen && (
+        <div className="modal-overlay" onClick={() => setDeleteCajaModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>🗑️ Borrar Datos de Caja Chica por Rango de Fechas</h2>
+            <p className="warning-text">⚠️ ADVERTENCIA: Esta acción es permanente y no se puede deshacer.</p>
+            <p className="modal-info">Solo usuarios autorizados pueden realizar esta acción.</p>
+            
+            <div className="form-group">
+              <label>Usuario Autorizado</label>
+              <input
+                type="text"
+                value={deleteCajaUsername}
+                onChange={(e) => setDeleteCajaUsername(e.target.value)}
+                placeholder="usuario@ibsgroup.mx"
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Contraseña</label>
+              <input
+                type="password"
+                value={deleteCajaPassword}
+                onChange={(e) => setDeleteCajaPassword(e.target.value)}
+                placeholder="••••••••"
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Fecha Inicio</label>
+              <input
+                type="date"
+                value={deleteCajaDateStart}
+                onChange={(e) => setDeleteCajaDateStart(e.target.value)}
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Fecha Fin</label>
+              <input
+                type="date"
+                value={deleteCajaDateEnd}
+                onChange={(e) => setDeleteCajaDateEnd(e.target.value)}
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setDeleteCajaModalOpen(false)}>
+                Cancelar
+              </button>
+              <button className="btn-danger" onClick={handleDeleteCajaData}>
+                Borrar Datos
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       
         {activeView === 'cuentas' && (
           <div className="cuentas-section">
