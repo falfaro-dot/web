@@ -936,6 +936,190 @@ async def export_operations_summary_xlsx(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
 
+@app.get("/api/export/efectivo/xlsx")
+async def export_efectivo_xlsx(
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None
+):
+    """Export cash transactions (Caja Chica) to Excel file"""
+    try:
+        # Build query
+        query = {}
+        if fecha_inicio and fecha_fin:
+            query["fecha"] = {"$gte": fecha_inicio, "$lte": fecha_fin}
+        
+        # Get transactions
+        transactions = await db.efectivo_transactions.find(query).sort("fecha", -1).to_list(length=None)
+        
+        # Create workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Caja Chica"
+        
+        # Define headers
+        headers = [
+            "Fecha", "Tipo Movimiento", "Origen/Destino Tipo", "Origen/Destino Nombre",
+            "Afectación", "Cantidad", "Folio/Cheque", "Concepto", "Usuario"
+        ]
+        
+        # Style for headers
+        header_fill = PatternFill(start_color="C5B77D", end_color="C5B77D", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        # Write headers
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Write data
+        for row_num, tx in enumerate(transactions, 2):
+            ws.cell(row=row_num, column=1, value=tx.get("fecha", ""))
+            ws.cell(row=row_num, column=2, value=tx.get("tipo_movimiento", ""))
+            ws.cell(row=row_num, column=3, value=tx.get("origen_destino_tipo", ""))
+            ws.cell(row=row_num, column=4, value=tx.get("origen_destino_nombre", ""))
+            ws.cell(row=row_num, column=5, value=tx.get("afectacion_origen_destino", ""))
+            ws.cell(row=row_num, column=6, value=tx.get("cantidad", 0))
+            ws.cell(row=row_num, column=7, value=tx.get("folio_cheque", ""))
+            ws.cell(row=row_num, column=8, value=tx.get("concepto", ""))
+            ws.cell(row=row_num, column=9, value=tx.get("ejecutivo", ""))
+        
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column[0].column_letter].width = adjusted_width
+        
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=caja_chica.xlsx"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
+
+@app.get("/api/export/bank_balances/xlsx")
+async def export_bank_balances_xlsx(
+    fecha: Optional[str] = None
+):
+    """Export bank balances to Excel file"""
+    try:
+        # Get all bank accounts
+        accounts = await db.bank_accounts.find().to_list(length=None)
+        
+        # Get latest balances for each account
+        balances_dict = {}
+        for account in accounts:
+            # Find latest balance for this account
+            latest_balance = await db.bank_balances.find_one(
+                {"nombre_cuenta": account["nombre"]},
+                sort=[("fecha", -1)]
+            )
+            if latest_balance:
+                balances_dict[account["nombre"]] = {
+                    "banco": account.get("banco", ""),
+                    "saldo": latest_balance.get("saldo", 0),
+                    "ultima_actualizacion": latest_balance.get("timestamp", latest_balance.get("fecha", ""))
+                }
+        
+        # Create workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Saldos Bancarios"
+        
+        # Define headers
+        headers = ["Nombre Cuenta", "Banco", "Saldo", "Última Actualización"]
+        
+        # Style for headers
+        header_fill = PatternFill(start_color="C5B77D", end_color="C5B77D", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        # Write headers
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Write data
+        row_num = 2
+        for account_name, data in balances_dict.items():
+            ws.cell(row=row_num, column=1, value=account_name)
+            ws.cell(row=row_num, column=2, value=data["banco"])
+            ws.cell(row=row_num, column=3, value=data["saldo"])
+            ws.cell(row=row_num, column=4, value=data["ultima_actualizacion"])
+            row_num += 1
+        
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column[0].column_letter].width = adjusted_width
+        
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=saldos_bancarios.xlsx"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
+
+@app.post("/api/admin/delete_efectivo")
+async def delete_efectivo_by_date_range(request: DeleteDataRequest):
+    """Delete cash transactions (Caja Chica) by date range - Admin only"""
+    # Authorized users
+    authorized_users = {
+        "f.alfaro@ibsgroup.mx": "System3ras3$0",
+        "administracion@ibsgroup.mx": "System3ras3$!"
+    }
+    
+    # Verify credentials
+    if request.username not in authorized_users or authorized_users[request.username] != request.password:
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    try:
+        # Delete efectivo transactions in date range
+        query = {
+            "fecha": {
+                "$gte": request.fecha_inicio,
+                "$lte": request.fecha_fin
+            }
+        }
+        
+        result = await db.efectivo_transactions.delete_many(query)
+        
+        return {
+            "success": True,
+            "message": f"{result.deleted_count} movimientos de caja chica eliminados",
+            "deleted_count": result.deleted_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error eliminando datos: {str(e)}")
+
+
 @app.post("/api/efectivo/create")
 async def create_efectivo_transaction(
     fecha: str = Form(...),
