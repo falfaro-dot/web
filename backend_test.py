@@ -589,6 +589,7 @@ class TreasuryTestRunner:
             self.test_authentication()
             self.test_file_upload()
             self.test_treasury_balance()
+            self.test_cash_treasury_impact()  # New test for Afectación a Tesorería
             self.test_dashboard_endpoints()
         else:
             print("❌ Health check failed - skipping other tests")
