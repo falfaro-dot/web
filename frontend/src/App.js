@@ -281,8 +281,8 @@ function App() {
     }
   };
   
-  // Load efectivo transactions
-  const loadEfectivoTransactions = async () => {
+  // Load Caja Chica transactions
+  const loadCajaChicaTransactions = async () => {
     try {
       let url = `${BACKEND_URL}/api/efectivo/transactions?`;
       if (searchDateStart) url += `fecha_inicio=${searchDateStart}&`;
@@ -290,9 +290,20 @@ function App() {
       
       const response = await fetch(url);
       const data = await response.json();
-      setEfectivoTransactions(data);
+      setCajaTransactions(data);
     } catch (error) {
-      console.error('Error loading efectivo:', error);
+      console.error('Error loading Caja Chica:', error);
+    }
+  };
+  
+  // Load treasury clients
+  const loadTreasuryClients = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/treasury/clients`);
+      const data = await response.json();
+      setTreasuryClients(data);
+    } catch (error) {
+      console.error('Error loading treasury clients:', error);
     }
   };
   
