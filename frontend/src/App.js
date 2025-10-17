@@ -470,6 +470,53 @@ function App() {
       alert('✗ Error de conexión: ' + error.message);
     }
   };
+
+  // Delete Caja Chica data by date range
+  const handleDeleteCajaData = async () => {
+    if (!deleteCajaDateStart || !deleteCajaDateEnd) {
+      alert('Por favor seleccione ambas fechas');
+      return;
+    }
+    
+    if (!deleteCajaUsername || !deleteCajaPassword) {
+      alert('Por favor ingrese usuario y contraseña');
+      return;
+    }
+    
+    if (!window.confirm('⚠️ ADVERTENCIA: Esta acción eliminará permanentemente todos los movimientos de Caja Chica en el rango de fechas seleccionado. ¿Está seguro?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/admin/delete_efectivo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: deleteCajaUsername,
+          password: deleteCajaPassword,
+          fecha_inicio: deleteCajaDateStart + 'T00:00:00Z',
+          fecha_fin: deleteCajaDateEnd + 'T23:59:59Z'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        alert(`✓ ${data.deleted_count} movimientos de Caja Chica eliminados exitosamente`);
+        setDeleteCajaModalOpen(false);
+        setDeleteCajaUsername('');
+        setDeleteCajaPassword('');
+        setDeleteCajaDateStart('');
+        setDeleteCajaDateEnd('');
+        loadCajaChicaTransactions();
+      } else {
+        alert('✗ ' + data.detail || 'Error eliminando datos');
+      }
+    } catch (error) {
+      alert('✗ Error de conexión: ' + error.message);
+    }
+  };
+
   
   // Cancel transaction
   const handleCancelTransaction = async () => {
