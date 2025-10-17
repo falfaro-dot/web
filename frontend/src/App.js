@@ -427,6 +427,12 @@ function App() {
   
   // Delete data by date range
   const handleDeleteData = async () => {
+    console.log('handleDeleteData called');
+    console.log('deleteDateStart:', deleteDateStart);
+    console.log('deleteDateEnd:', deleteDateEnd);
+    console.log('deleteUsername:', deleteUsername);
+    console.log('deletePassword:', deletePassword ? '***' : 'empty');
+    
     if (!deleteDateStart || !deleteDateEnd) {
       alert('Por favor seleccione ambas fechas');
       return;
