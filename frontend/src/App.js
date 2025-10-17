@@ -714,6 +714,12 @@ function App() {
                       onChange={(e) => {
                         setCajaOrigenDestinoTipo(e.target.value);
                         setCajaOrigenDestinoNombre('');
+                        // Set default afectacion based on tipo_movimiento
+                        if (cajaTipoMovimiento === 'Abono a Caja Chica') {
+                          setCajaAfectacionOrigenDestino('Cargo');
+                        } else {
+                          setCajaAfectacionOrigenDestino('Abono');
+                        }
                       }}
                       required
                     >
@@ -723,6 +729,28 @@ function App() {
                     </select>
                   </div>
                   
+                  {(cajaOrigenDestinoTipo === 'Tesorería Cliente' || cajaOrigenDestinoTipo === 'Cuenta Bancaria') && (
+                    <div className="form-group">
+                      <label>Afectación a {cajaOrigenDestinoTipo === 'Tesorería Cliente' ? 'Tesorería' : 'Cuenta'}</label>
+                      <select
+                        value={cajaAfectacionOrigenDestino}
+                        onChange={(e) => setCajaAfectacionOrigenDestino(e.target.value)}
+                        required
+                        className="afectacion-select"
+                      >
+                        <option value="Cargo">Cargo (Disminuye Saldo)</option>
+                        <option value="Abono">Abono (Aumenta Saldo)</option>
+                      </select>
+                      <small style={{display: 'block', marginTop: '5px', color: '#666'}}>
+                        {cajaAfectacionOrigenDestino === 'Cargo' ? 
+                          '⚠️ Restará del saldo actual' : 
+                          '✓ Sumará al saldo actual'}
+                      </small>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="form-row">
                   <div className="form-group">
                     <label>
                       {cajaOrigenDestinoTipo === 'Tesorería Cliente' ? 'Cliente' :
