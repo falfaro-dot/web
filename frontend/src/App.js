@@ -77,6 +77,23 @@ function App() {
   const [cuentaMessage, setCuentaMessage] = useState('');
   const [bankAccounts, setBankAccounts] = useState([]);
   const [bankAccountsWithBalances, setBankAccountsWithBalances] = useState([]);
+
+  // Fondeos state
+  const [fondeoFile, setFondeoFile] = useState(null);
+  const [fondeoCuentaOrigen, setFondeoCuentaOrigen] = useState('NEXBILL STP');
+  const [fondeoMessage, setFondeoMessage] = useState('');
+  const [fondeoTransactions, setFondeoTransactions] = useState([]);
+  const [fondeoSearchDateStart, setFondeoSearchDateStart] = useState('');
+  const [fondeoSearchDateEnd, setFondeoSearchDateEnd] = useState('');
+  const [fondeoSummary, setFondeoSummary] = useState({
+    total_transacciones: 0,
+    total_ingresos: 0,
+    total_egresos: 0,
+    total_comisiones_spei: 0,
+    saldo_final_nexbill: 0,
+    saldo_final_mesubaj: 0
+  });
+  
   
   // Check login status
   useEffect(() => {
