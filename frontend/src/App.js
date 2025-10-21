@@ -425,6 +425,78 @@ function App() {
       alert('Error inicializando cuentas: ' + error.message);
     }
   };
+
+  // ============== FONDEOS FUNCTIONS ==============
+  
+  // Load fondeos transactions
+  const loadFondeoTransactions = async () => {
+    try {
+      let url = `${BACKEND_URL}/api/fondeos/transactions?`;
+      if (fondeoSearchDateStart) url += `fecha_inicio=${fondeoSearchDateStart}&`;
+      if (fondeoSearchDateEnd) url += `fecha_fin=${fondeoSearchDateEnd}&`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      setFondeoTransactions(data);
+      
+      // Also load summary
+      loadFondeoSummary();
+    } catch (error) {
+      console.error('Error loading fondeo transactions:', error);
+    }
+  };
+  
+  // Load fondeos summary
+  const loadFondeoSummary = async () => {
+    try {
+      let url = `${BACKEND_URL}/api/fondeos/summary?`;
+      if (fondeoSearchDateStart) url += `fecha_inicio=${fondeoSearchDateStart}&`;
+      if (fondeoSearchDateEnd) url += `fecha_fin=${fondeoSearchDateEnd}&`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      setFondeoSummary(data);
+    } catch (error) {
+      console.error('Error loading fondeo summary:', error);
+    }
+  };
+  
+  // Handle fondeo Excel upload
+  const handleFondeoUpload = async (e) => {
+    e.preventDefault();
+    
+    if (!fondeoFile) {
+      setFondeoMessage('✗ Por favor seleccione un archivo Excel');
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', fondeoFile);
+    formData.append('cuenta_origen', fondeoCuentaOrigen);
+    formData.append('ejecutivo', currentUser);
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/fondeos/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setFondeoMessage(`✓ ${data.transactions_added} transacciones procesadas exitosamente`);
+        setFondeoFile(null);
+        loadFondeoTransactions();
+        // Reset file input
+        document.getElementById('fondeo-file-input').value = '';
+      } else {
+        setFondeoMessage('✗ Error: ' + (data.detail || 'Error desconocido'));
+      }
+    } catch (error) {
+      setFondeoMessage('✗ Error de conexión: ' + error.message);
+    }
+  };
+  
   
   // Load dashboard data when view changes
   useEffect(() => {
