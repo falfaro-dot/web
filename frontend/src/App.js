@@ -2112,6 +2112,170 @@ function App() {
           </div>
         )}
       
+
+
+        {activeView === 'fondeos' && (
+          <div className="fondeos-section">
+            {/* Upload Excel Fondeos */}
+            <div className="section-card">
+              <h2>💰 Cargar Movimientos STP</h2>
+              <form onSubmit={handleFondeoUpload}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Archivo Excel (.xlsx)</label>
+                    <input
+                      id="fondeo-file-input"
+                      type="file"
+                      accept=".xlsx"
+                      onChange={(e) => setFondeoFile(e.target.files[0])}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Cuenta Origen</label>
+                    <select
+                      value={fondeoCuentaOrigen}
+                      onChange={(e) => setFondeoCuentaOrigen(e.target.value)}
+                      required
+                    >
+                      <option value="NEXBILL STP">NEXBILL INMOBILIARIA SA DE CV (STP 120235)</option>
+                      <option value="MESUBAJ STP">MESUBAJ COMERCIALIZADORA SA DE CV (STP 121906)</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" className="btn-primary">
+                  Procesar Archivo
+                </button>
+                {fondeoMessage && <p className={fondeoMessage.includes('✓') ? 'success-message' : 'error-message'}>{fondeoMessage}</p>}
+              </form>
+            </div>
+            
+            {/* Filtros de Búsqueda */}
+            <div className="section-card">
+              <h2>🔍 Filtros de Búsqueda</h2>
+              <div className="filter-row">
+                <div className="form-group">
+                  <label>Fecha Inicio</label>
+                  <input
+                    type="date"
+                    value={fondeoSearchDateStart}
+                    onChange={(e) => setFondeoSearchDateStart(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Fecha Fin</label>
+                  <input
+                    type="date"
+                    value={fondeoSearchDateEnd}
+                    onChange={(e) => setFondeoSearchDateEnd(e.target.value)}
+                  />
+                </div>
+                <button
+                  className="btn-search"
+                  onClick={loadFondeoTransactions}
+                >
+                  🔍 Buscar
+                </button>
+              </div>
+            </div>
+            
+            {/* Totalizadores */}
+            <div className="section-card">
+              <h2>📊 Resumen de Fondeos</h2>
+              <div className="totalizadores-grid">
+                <div className="totalizador">
+                  <div className="totalizador-title">Total Transacciones</div>
+                  <div className="totalizador-value">{fondeoSummary.total_transacciones}</div>
+                </div>
+                <div className="totalizador">
+                  <div className="totalizador-title">Total Ingresos</div>
+                  <div className="totalizador-value positive">${fondeoSummary.total_ingresos.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                </div>
+                <div className="totalizador">
+                  <div className="totalizador-title">Total Egresos</div>
+                  <div className="totalizador-value negative">${fondeoSummary.total_egresos.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                </div>
+                <div className="totalizador">
+                  <div className="totalizador-title">Total Comisiones SPEI OUT</div>
+                  <div className="totalizador-value negative">${fondeoSummary.total_comisiones_spei.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                </div>
+                <div className="totalizador">
+                  <div className="totalizador-title">Saldo Final NEXBILL STP</div>
+                  <div className="totalizador-value">${fondeoSummary.saldo_final_nexbill.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                </div>
+                <div className="totalizador">
+                  <div className="totalizador-title">Saldo Final MESUBAJ STP</div>
+                  <div className="totalizador-value">${fondeoSummary.saldo_final_mesubaj.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Historial de Fondeos */}
+            <div className="section-card">
+              <div className="transactions-header">
+                <h2>📋 Historial de Fondeos</h2>
+                <button
+                  className="btn-export"
+                  onClick={() => {
+                    let url = `${BACKEND_URL}/api/export/fondeos/xlsx?`;
+                    if (fondeoSearchDateStart) url += `fecha_inicio=${fondeoSearchDateStart}&`;
+                    if (fondeoSearchDateEnd) url += `fecha_fin=${fondeoSearchDateEnd}&`;
+                    window.open(url, '_blank');
+                  }}
+                >
+                  📥 Descargar Excel
+                </button>
+              </div>
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Tipo de Operación</th>
+                      <th>Nombre Ordenante</th>
+                      <th>Destinatario</th>
+                      <th>Egreso</th>
+                      <th>Ingreso</th>
+                      <th>Saldo</th>
+                      <th>Cuenta Origen</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fondeoTransactions.length === 0 ? (
+                      <tr>
+                        <td colSpan="9" className="no-data">No hay transacciones de fondeo</td>
+                      </tr>
+                    ) : (
+                      fondeoTransactions.map((tx, idx) => (
+                        <tr key={idx}>
+                          <td>{tx.fecha_creacion}</td>
+                          <td><span className="badge-small">{tx.tipo_operacion}</span></td>
+                          <td>{tx.nombre_ordenante}</td>
+                          <td>{tx.destinatario}</td>
+                          <td className={tx.egreso > 0 ? 'negative' : ''}>
+                            {tx.egreso > 0 ? `$${tx.egreso.toLocaleString('es-MX', {minimumFractionDigits: 2})}` : '-'}
+                          </td>
+                          <td className={tx.ingreso > 0 ? 'positive' : ''}>
+                            {tx.ingreso > 0 ? `$${tx.ingreso.toLocaleString('es-MX', {minimumFractionDigits: 2})}` : '-'}
+                          </td>
+                          <td><strong>${tx.saldo.toLocaleString('es-MX', {minimumFractionDigits: 2})}</strong></td>
+                          <td><span className="badge-small">{tx.cuenta_origen}</span></td>
+                          <td>
+                            <span className={tx.estado === 'Exitosa' ? 'badge-green' : 'badge-red'}>
+                              {tx.estado}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
       {/* Footer */}
       <footer className="app-footer">
         <p>© 2025 IBS Group - Integra Business Solutions</p>
