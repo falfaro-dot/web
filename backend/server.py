@@ -1687,7 +1687,7 @@ async def get_fondeos_summary(
     fecha_inicio: Optional[str] = None,
     fecha_fin: Optional[str] = None
 ):
-    """Get fondeos summary with totals"""
+    """Get fondeos summary with totals and subtotals by account"""
     try:
         query = {}
         
@@ -1696,21 +1696,45 @@ async def get_fondeos_summary(
         
         transactions = await db.fondeo_transactions.find(query).to_list(length=None)
         
+        # Separate by account
+        nexbill_transactions = [tx for tx in transactions if tx.get("cuenta_origen") == "NEXBILL STP"]
+        mesubaj_transactions = [tx for tx in transactions if tx.get("cuenta_origen") == "MESUBAJ STP"]
+        
         # Calculate totals
         total_transacciones = len(transactions)
         total_ingresos = sum(tx.get("ingreso", 0) for tx in transactions)
         total_egresos = sum(tx.get("egreso", 0) for tx in transactions)
         
-        # Calculate total comisiones SPEI OUT
+        # Calculate total comisiones SPEI OUT (buscar en tipo_operacion)
         total_comisiones_spei = sum(
             tx.get("egreso", 0) for tx in transactions 
-            if tx.get("concepto") == "COMISION SPEI OUT"
+            if tx.get("tipo_operacion") == "Comisión por SPEI OUT"
         )
         
-        # Get final balance for each account
-        nexbill_transactions = [tx for tx in transactions if tx.get("cuenta_origen") == "NEXBILL STP"]
-        mesubaj_transactions = [tx for tx in transactions if tx.get("cuenta_origen") == "MESUBAJ STP"]
+        # Calculate difference
+        diferencia = total_ingresos - total_egresos
         
+        # Calculate subtotals for NEXBILL STP
+        subtotal_transacciones_nexbill = len(nexbill_transactions)
+        subtotal_ingresos_nexbill = sum(tx.get("ingreso", 0) for tx in nexbill_transactions)
+        subtotal_egresos_nexbill = sum(tx.get("egreso", 0) for tx in nexbill_transactions)
+        subtotal_comisiones_nexbill = sum(
+            tx.get("egreso", 0) for tx in nexbill_transactions 
+            if tx.get("tipo_operacion") == "Comisión por SPEI OUT"
+        )
+        diferencia_nexbill = subtotal_ingresos_nexbill - subtotal_egresos_nexbill
+        
+        # Calculate subtotals for MESUBAJ STP
+        subtotal_transacciones_mesubaj = len(mesubaj_transactions)
+        subtotal_ingresos_mesubaj = sum(tx.get("ingreso", 0) for tx in mesubaj_transactions)
+        subtotal_egresos_mesubaj = sum(tx.get("egreso", 0) for tx in mesubaj_transactions)
+        subtotal_comisiones_mesubaj = sum(
+            tx.get("egreso", 0) for tx in mesubaj_transactions 
+            if tx.get("tipo_operacion") == "Comisión por SPEI OUT"
+        )
+        diferencia_mesubaj = subtotal_ingresos_mesubaj - subtotal_egresos_mesubaj
+        
+        # Get final balance for each account
         saldo_final_nexbill = nexbill_transactions[-1].get("saldo", 0) if nexbill_transactions else 0
         saldo_final_mesubaj = mesubaj_transactions[-1].get("saldo", 0) if mesubaj_transactions else 0
         
@@ -1719,8 +1743,21 @@ async def get_fondeos_summary(
             "total_ingresos": round(total_ingresos, 2),
             "total_egresos": round(total_egresos, 2),
             "total_comisiones_spei": round(total_comisiones_spei, 2),
+            "diferencia": round(diferencia, 2),
             "saldo_final_nexbill": round(saldo_final_nexbill, 2),
-            "saldo_final_mesubaj": round(saldo_final_mesubaj, 2)
+            "saldo_final_mesubaj": round(saldo_final_mesubaj, 2),
+            # Subtotals NEXBILL
+            "subtotal_transacciones_nexbill": subtotal_transacciones_nexbill,
+            "subtotal_ingresos_nexbill": round(subtotal_ingresos_nexbill, 2),
+            "subtotal_egresos_nexbill": round(subtotal_egresos_nexbill, 2),
+            "subtotal_comisiones_nexbill": round(subtotal_comisiones_nexbill, 2),
+            "diferencia_nexbill": round(diferencia_nexbill, 2),
+            # Subtotals MESUBAJ
+            "subtotal_transacciones_mesubaj": subtotal_transacciones_mesubaj,
+            "subtotal_ingresos_mesubaj": round(subtotal_ingresos_mesubaj, 2),
+            "subtotal_egresos_mesubaj": round(subtotal_egresos_mesubaj, 2),
+            "subtotal_comisiones_mesubaj": round(subtotal_comisiones_mesubaj, 2),
+            "diferencia_mesubaj": round(diferencia_mesubaj, 2)
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error calculando resumen: {str(e)}")
