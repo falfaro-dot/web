@@ -1550,3 +1550,253 @@ async def bulk_insert_bank_accounts():
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "message": "Sistema de Registro de Operaciones API"}
+
+
+# ============== FONDEOS ENDPOINTS ==============
+
+@app.post("/api/fondeos/upload")
+async def upload_fondeos_excel(
+    file: UploadFile = File(...),
+    cuenta_origen: str = Form(...),  # NEXBILL STP o MESUBAJ STP
+    ejecutivo: str = Form(...)
+):
+    """Process STP movements Excel file and save fondeo transactions"""
+    try:
+        # Save uploaded file
+        file_path = UPLOAD_DIR / f"{uuid.uuid4()}_{file.filename}"
+        with file_path.open("wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Load Excel file
+        wb = load_workbook(file_path, data_only=True)
+        ws = wb.active
+        
+        transactions_added = 0
+        
+        # Find header row (should be first row)
+        headers = {}
+        for col_idx, cell in enumerate(ws[1], 1):
+            if cell.value:
+                headers[cell.value.strip()] = col_idx
+        
+        # Required column mappings
+        col_map = {
+            'fecha': headers.get('Fecha de creación'),
+            'tipo_operacion': headers.get('Tipo de operación'),
+            'nombre_ordenante': headers.get('Nombre ordenante'),
+            'destinatario': headers.get('Destinatario'),
+            'concepto': headers.get('Concepto'),
+            'egreso': headers.get('Egreso'),
+            'ingreso': headers.get('Ingreso'),
+            'saldo': headers.get('Saldo'),
+            'estado': headers.get('Estado'),
+            'descripcion': headers.get('Descripción'),
+            'identificador': headers.get('Identificador')
+        }
+        
+        # Check if all required columns exist
+        missing_cols = [k for k, v in col_map.items() if v is None]
+        if missing_cols:
+            raise HTTPException(status_code=400, detail=f"Columnas faltantes: {', '.join(missing_cols)}")
+        
+        # Process each row
+        for row_idx in range(2, ws.max_row + 1):
+            row = ws[row_idx]
+            
+            # Skip empty rows
+            if not any(cell.value for cell in row):
+                continue
+            
+            # Extract values
+            fecha_cell = ws.cell(row_idx, col_map['fecha']).value
+            tipo_operacion = ws.cell(row_idx, col_map['tipo_operacion']).value
+            nombre_ordenante = ws.cell(row_idx, col_map['nombre_ordenante']).value
+            destinatario = ws.cell(row_idx, col_map['destinatario']).value
+            concepto = ws.cell(row_idx, col_map['concepto']).value
+            egreso = ws.cell(row_idx, col_map['egreso']).value or 0.0
+            ingreso = ws.cell(row_idx, col_map['ingreso']).value or 0.0
+            saldo = ws.cell(row_idx, col_map['saldo']).value or 0.0
+            estado = ws.cell(row_idx, col_map['estado']).value
+            descripcion = ws.cell(row_idx, col_map['descripcion']).value
+            identificador = ws.cell(row_idx, col_map['identificador']).value
+            
+            # Skip if essential fields are missing
+            if not fecha_cell or not tipo_operacion:
+                continue
+            
+            # Parse fecha
+            if isinstance(fecha_cell, datetime):
+                fecha_str = fecha_cell.strftime("%Y-%m-%d %H:%M:%S")
+            else:
+                fecha_str = str(fecha_cell)
+            
+            # Create fondeo transaction
+            fondeo = FondeoTransaction(
+                fecha_creacion=fecha_str,
+                tipo_operacion=str(tipo_operacion) if tipo_operacion else "",
+                nombre_ordenante=str(nombre_ordenante) if nombre_ordenante else "",
+                destinatario=str(destinatario) if destinatario else "",
+                concepto=str(concepto) if concepto else "",
+                egreso=float(egreso),
+                ingreso=float(ingreso),
+                saldo=float(saldo),
+                estado=str(estado) if estado else "",
+                descripcion=str(descripcion) if descripcion else None,
+                identificador=str(identificador) if identificador else None,
+                cuenta_origen=cuenta_origen,
+                ejecutivo=ejecutivo
+            )
+            
+            await db.fondeo_transactions.insert_one(fondeo.dict())
+            transactions_added += 1
+        
+        # Clean up
+        file_path.unlink()
+        
+        return {
+            "success": True,
+            "message": f"{transactions_added} transacciones de fondeo procesadas exitosamente",
+            "transactions_added": transactions_added
+        }
+        
+    except Exception as e:
+        if file_path.exists():
+            file_path.unlink()
+        raise HTTPException(status_code=500, detail=f"Error procesando archivo: {str(e)}")
+
+@app.get("/api/fondeos/transactions")
+async def get_fondeo_transactions(
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None
+):
+    """Get fondeo transactions with optional date filter"""
+    try:
+        query = {}
+        
+        if fecha_inicio and fecha_fin:
+            query["fecha_creacion"] = {"$gte": fecha_inicio, "$lte": fecha_fin}
+        
+        transactions = await db.fondeo_transactions.find(query).sort("fecha_creacion", -1).to_list(length=None)
+        
+        return serialize_doc(transactions)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo transacciones: {str(e)}")
+
+@app.get("/api/fondeos/summary")
+async def get_fondeos_summary(
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None
+):
+    """Get fondeos summary with totals"""
+    try:
+        query = {}
+        
+        if fecha_inicio and fecha_fin:
+            query["fecha_creacion"] = {"$gte": fecha_inicio, "$lte": fecha_fin}
+        
+        transactions = await db.fondeo_transactions.find(query).to_list(length=None)
+        
+        # Calculate totals
+        total_transacciones = len(transactions)
+        total_ingresos = sum(tx.get("ingreso", 0) for tx in transactions)
+        total_egresos = sum(tx.get("egreso", 0) for tx in transactions)
+        
+        # Calculate total comisiones SPEI OUT
+        total_comisiones_spei = sum(
+            tx.get("egreso", 0) for tx in transactions 
+            if tx.get("concepto") == "COMISION SPEI OUT"
+        )
+        
+        # Get final balance for each account
+        nexbill_transactions = [tx for tx in transactions if tx.get("cuenta_origen") == "NEXBILL STP"]
+        mesubaj_transactions = [tx for tx in transactions if tx.get("cuenta_origen") == "MESUBAJ STP"]
+        
+        saldo_final_nexbill = nexbill_transactions[-1].get("saldo", 0) if nexbill_transactions else 0
+        saldo_final_mesubaj = mesubaj_transactions[-1].get("saldo", 0) if mesubaj_transactions else 0
+        
+        return {
+            "total_transacciones": total_transacciones,
+            "total_ingresos": round(total_ingresos, 2),
+            "total_egresos": round(total_egresos, 2),
+            "total_comisiones_spei": round(total_comisiones_spei, 2),
+            "saldo_final_nexbill": round(saldo_final_nexbill, 2),
+            "saldo_final_mesubaj": round(saldo_final_mesubaj, 2)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calculando resumen: {str(e)}")
+
+@app.get("/api/export/fondeos/xlsx")
+async def export_fondeos_xlsx(
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None
+):
+    """Export fondeos to Excel file"""
+    try:
+        # Build query
+        query = {}
+        if fecha_inicio and fecha_fin:
+            query["fecha_creacion"] = {"$gte": fecha_inicio, "$lte": fecha_fin}
+        
+        # Get transactions
+        transactions = await db.fondeo_transactions.find(query).sort("fecha_creacion", -1).to_list(length=None)
+        
+        # Create workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Fondeos"
+        
+        # Define headers
+        headers = [
+            "Fecha", "Tipo de Operación", "Nombre Ordenante", "Destinatario",
+            "Egreso", "Ingreso", "Saldo", "Cuenta Origen", "Estado", "Concepto"
+        ]
+        
+        # Style for headers
+        header_fill = PatternFill(start_color="C5B77D", end_color="C5B77D", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        # Write headers
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Write data
+        for row_num, tx in enumerate(transactions, 2):
+            ws.cell(row=row_num, column=1, value=tx.get("fecha_creacion", ""))
+            ws.cell(row=row_num, column=2, value=tx.get("tipo_operacion", ""))
+            ws.cell(row=row_num, column=3, value=tx.get("nombre_ordenante", ""))
+            ws.cell(row=row_num, column=4, value=tx.get("destinatario", ""))
+            ws.cell(row=row_num, column=5, value=tx.get("egreso", 0))
+            ws.cell(row=row_num, column=6, value=tx.get("ingreso", 0))
+            ws.cell(row=row_num, column=7, value=tx.get("saldo", 0))
+            ws.cell(row=row_num, column=8, value=tx.get("cuenta_origen", ""))
+            ws.cell(row=row_num, column=9, value=tx.get("estado", ""))
+            ws.cell(row=row_num, column=10, value=tx.get("concepto", ""))
+        
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column[0].column_letter].width = adjusted_width
+        
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=fondeos.xlsx"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
+
