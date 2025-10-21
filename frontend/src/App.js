@@ -513,6 +513,9 @@ function App() {
     } else if (activeView === 'cuentas') {
       loadBankAccounts();
       loadBankAccountsWithBalances();
+    } else if (activeView === 'fondeos') {
+      loadFondeoTransactions();
+      loadFondeoSummary();
     }
   }, [activeView]);
   
