@@ -90,8 +90,19 @@ function App() {
     total_ingresos: 0,
     total_egresos: 0,
     total_comisiones_spei: 0,
+    diferencia: 0,
     saldo_final_nexbill: 0,
-    saldo_final_mesubaj: 0
+    saldo_final_mesubaj: 0,
+    subtotal_transacciones_nexbill: 0,
+    subtotal_ingresos_nexbill: 0,
+    subtotal_egresos_nexbill: 0,
+    subtotal_comisiones_nexbill: 0,
+    diferencia_nexbill: 0,
+    subtotal_transacciones_mesubaj: 0,
+    subtotal_ingresos_mesubaj: 0,
+    subtotal_egresos_mesubaj: 0,
+    subtotal_comisiones_mesubaj: 0,
+    diferencia_mesubaj: 0
   });
   
   
