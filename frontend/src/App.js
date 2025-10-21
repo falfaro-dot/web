@@ -2193,31 +2193,55 @@ function App() {
             {/* Totalizadores */}
             <div className="section-card">
               <h2>📊 Resumen de Fondeos</h2>
-              <div className="totalizadores-grid">
-                <div className="totalizador">
-                  <div className="totalizador-title">Total Transacciones</div>
-                  <div className="totalizador-value">{fondeoSummary.total_transacciones}</div>
-                </div>
-                <div className="totalizador">
-                  <div className="totalizador-title">Total Ingresos</div>
-                  <div className="totalizador-value positive">${fondeoSummary.total_ingresos.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                </div>
-                <div className="totalizador">
-                  <div className="totalizador-title">Total Egresos</div>
-                  <div className="totalizador-value negative">${fondeoSummary.total_egresos.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                </div>
-                <div className="totalizador">
-                  <div className="totalizador-title">Total Comisiones SPEI OUT</div>
-                  <div className="totalizador-value negative">${fondeoSummary.total_comisiones_spei.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                </div>
-                <div className="totalizador">
-                  <div className="totalizador-title">Saldo Final NEXBILL STP</div>
-                  <div className="totalizador-value">${fondeoSummary.saldo_final_nexbill.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                </div>
-                <div className="totalizador">
-                  <div className="totalizador-title">Saldo Final MESUBAJ STP</div>
-                  <div className="totalizador-value">${fondeoSummary.saldo_final_mesubaj.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                </div>
+              <div className="table-container">
+                <table className="data-table fondeos-summary-table">
+                  <thead>
+                    <tr>
+                      <th>Concepto</th>
+                      <th>Total</th>
+                      <th>NEXBILL STP</th>
+                      <th>MESUBAJ STP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Total Transacciones</strong></td>
+                      <td>{fondeoSummary.total_transacciones}</td>
+                      <td>{fondeoSummary.subtotal_transacciones_nexbill}</td>
+                      <td>{fondeoSummary.subtotal_transacciones_mesubaj}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Total Ingresos</strong></td>
+                      <td className="positive">${fondeoSummary.total_ingresos.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                      <td className="positive">${fondeoSummary.subtotal_ingresos_nexbill.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                      <td className="positive">${fondeoSummary.subtotal_ingresos_mesubaj.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Total Egresos</strong></td>
+                      <td className="negative">${fondeoSummary.total_egresos.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                      <td className="negative">${fondeoSummary.subtotal_egresos_nexbill.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                      <td className="negative">${fondeoSummary.subtotal_egresos_mesubaj.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Diferencia (Ingresos - Egresos)</strong></td>
+                      <td className={fondeoSummary.diferencia >= 0 ? 'positive' : 'negative'}><strong>${fondeoSummary.diferencia.toLocaleString('es-MX', {minimumFractionDigits: 2})}</strong></td>
+                      <td className={fondeoSummary.diferencia_nexbill >= 0 ? 'positive' : 'negative'}><strong>${fondeoSummary.diferencia_nexbill.toLocaleString('es-MX', {minimumFractionDigits: 2})}</strong></td>
+                      <td className={fondeoSummary.diferencia_mesubaj >= 0 ? 'positive' : 'negative'}><strong>${fondeoSummary.diferencia_mesubaj.toLocaleString('es-MX', {minimumFractionDigits: 2})}</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Total Comisiones SPEI OUT</strong></td>
+                      <td className="negative">${fondeoSummary.total_comisiones_spei.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                      <td className="negative">${fondeoSummary.subtotal_comisiones_nexbill.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                      <td className="negative">${fondeoSummary.subtotal_comisiones_mesubaj.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                    <tr className="summary-saldos">
+                      <td><strong>Saldo Final</strong></td>
+                      <td><strong>${(fondeoSummary.saldo_final_nexbill + fondeoSummary.saldo_final_mesubaj).toLocaleString('es-MX', {minimumFractionDigits: 2})}</strong></td>
+                      <td><strong>${fondeoSummary.saldo_final_nexbill.toLocaleString('es-MX', {minimumFractionDigits: 2})}</strong></td>
+                      <td><strong>${fondeoSummary.saldo_final_mesubaj.toLocaleString('es-MX', {minimumFractionDigits: 2})}</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
             
