@@ -770,6 +770,14 @@ function App() {
         >
           🏦 Cuentas Bancarias
         </button>
+
+        <button
+          className={activeView === 'fondeos' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveView('fondeos')}
+        >
+          💰 Fondeos
+        </button>
+
       </nav>
       
       {/* Main Content */}
