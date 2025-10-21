@@ -164,6 +164,23 @@ class BankAccount(BaseModel):
     clabe: str
     fecha_creacion: str
 
+
+class FondeoTransaction(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    fecha_creacion: str
+    tipo_operacion: str
+    nombre_ordenante: str
+    destinatario: str
+    concepto: str
+    egreso: float = 0.0
+    ingreso: float = 0.0
+    saldo: float = 0.0
+    estado: str
+    descripcion: Optional[str] = None
+    identificador: Optional[str] = None
+    cuenta_origen: str  # NEXBILL STP o MESUBAJ STP
+    ejecutivo: str
+
 # Initialize default users
 @app.on_event("startup")
 async def startup_event():
