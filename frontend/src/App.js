@@ -2057,6 +2057,92 @@ function App() {
         </div>
       )}
 
+
+      {/* Delete Fondeo Data Modal */}
+      {deleteFondeoModalOpen && (
+        <div className="modal-overlay" onClick={() => setDeleteFondeoModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>🗑️ Borrar Datos de Fondeos por Rango de Fechas</h2>
+            <p className="warning-text">⚠️ ADVERTENCIA: Esta acción es permanente y no se puede deshacer.</p>
+            <p className="modal-info">Solo usuarios autorizados pueden realizar esta acción.</p>
+            
+            <div className="form-group">
+              <label>Usuario Autorizado</label>
+              <input
+                type="text"
+                value={deleteFondeoUsername}
+                onChange={(e) => setDeleteFondeoUsername(e.target.value)}
+                placeholder="usuario@ibsgroup.mx"
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Contraseña</label>
+              <input
+                type="password"
+                value={deleteFondeoPassword}
+                onChange={(e) => setDeleteFondeoPassword(e.target.value)}
+                placeholder="••••••••"
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Fecha Inicio</label>
+              <input
+                type="date"
+                value={deleteFondeoDateStart}
+                onChange={(e) => setDeleteFondeoDateStart(e.target.value)}
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Fecha Fin</label>
+              <input
+                type="date"
+                value={deleteFondeoDateEnd}
+                onChange={(e) => setDeleteFondeoDateEnd(e.target.value)}
+                className="modal-input"
+              />
+            </div>
+            
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setDeleteFondeoModalOpen(false)}>
+                Cancelar
+              </button>
+              <button className="btn-danger" onClick={handleDeleteFondeoData}>
+                Borrar Datos
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal for Fondeos */}
+      {deleteFondeoConfirmModalOpen && (
+        <div className="modal-overlay" onClick={() => setDeleteFondeoConfirmModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>⚠️ Confirmar Eliminación</h2>
+            <p className="warning-text">ADVERTENCIA: Esta acción eliminará permanentemente todas las transacciones de fondeo en el rango de fechas seleccionado.</p>
+            <p><strong>Fecha Inicio:</strong> {deleteFondeoDateStart}</p>
+            <p><strong>Fecha Fin:</strong> {deleteFondeoDateEnd}</p>
+            <p><strong>Usuario:</strong> {deleteFondeoUsername}</p>
+            
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setDeleteFondeoConfirmModalOpen(false)}>
+                Cancelar
+              </button>
+              <button className="btn-danger" onClick={executeDeleteFondeoData}>
+                Confirmar Eliminación
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       
         {activeView === 'cuentas' && (
           <div className="cuentas-section">
