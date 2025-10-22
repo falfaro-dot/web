@@ -1837,3 +1837,188 @@ async def export_fondeos_xlsx(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error exportando: {str(e)}")
 
+
+
+@app.post("/api/admin/delete_fondeos")
+async def delete_fondeos_by_date_range(request: DeleteDataRequest):
+    """Delete fondeo transactions by date range - Admin only"""
+    # Authorized users
+    authorized_users = {
+        "f.alfaro@ibsgroup.mx": "System3ras3$0",
+        "administracion@ibsgroup.mx": "System3ras3$!"
+    }
+    
+    # Verify credentials
+    if request.username not in authorized_users or authorized_users[request.username] != request.password:
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    try:
+        # Extract date part only (YYYY-MM-DD) from the timestamps
+        fecha_inicio_str = request.fecha_inicio.split('T')[0] if 'T' in request.fecha_inicio else request.fecha_inicio
+        fecha_fin_str = request.fecha_fin.split('T')[0] if 'T' in request.fecha_fin else request.fecha_fin
+        
+        # Delete fondeo transactions in date range
+        query = {
+            "fecha_creacion": {
+                "$gte": fecha_inicio_str,
+                "$lte": fecha_fin_str
+            }
+        }
+        
+        result = await db.fondeo_transactions.delete_many(query)
+        
+        return {
+            "success": True,
+            "message": f"{result.deleted_count} transacciones de fondeo eliminadas",
+            "deleted_count": result.deleted_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error eliminando datos: {str(e)}")
+
+# ============== USER MANAGEMENT ENDPOINTS ==============
+
+@app.post("/api/admin/users/create")
+async def create_user(
+    admin_username: str = Form(...),
+    admin_password: str = Form(...),
+    new_username: str = Form(...),
+    new_password: str = Form(...),
+    new_email: str = Form(...)
+):
+    """Create new user - Admin only"""
+    # Authorized admins
+    authorized_admins = {
+        "f.alfaro@ibsgroup.mx": "System3ras3$0",
+        "administracion@ibsgroup.mx": "System3ras3$!"
+    }
+    
+    # Verify admin credentials
+    if admin_username not in authorized_admins or authorized_admins[admin_username] != admin_password:
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    try:
+        # Check if user already exists
+        existing_user = await db.users.find_one({"email": new_email})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="El usuario ya existe")
+        
+        # Create new user
+        new_user = {
+            "id": str(uuid.uuid4()),
+            "username": new_username,
+            "email": new_email,
+            "password": new_password,  # In production, hash this password
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_by": admin_username
+        }
+        
+        await db.users.insert_one(new_user)
+        
+        return {
+            "success": True,
+            "message": f"Usuario {new_username} creado exitosamente"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creando usuario: {str(e)}")
+
+@app.get("/api/admin/users")
+async def get_users(
+    admin_username: str,
+    admin_password: str
+):
+    """Get all users - Admin only"""
+    # Authorized admins
+    authorized_admins = {
+        "f.alfaro@ibsgroup.mx": "System3ras3$0",
+        "administracion@ibsgroup.mx": "System3ras3$!"
+    }
+    
+    # Verify admin credentials
+    if admin_username not in authorized_admins or authorized_admins[admin_username] != admin_password:
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    try:
+        users = await db.users.find().to_list(length=None)
+        # Remove password from response for security
+        for user in users:
+            user.pop('password', None)
+        return serialize_doc(users)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo usuarios: {str(e)}")
+
+@app.post("/api/admin/users/change_password")
+async def change_user_password(
+    admin_username: str = Form(...),
+    admin_password: str = Form(...),
+    target_email: str = Form(...),
+    new_password: str = Form(...)
+):
+    """Change user password - Admin only"""
+    # Authorized admins
+    authorized_admins = {
+        "f.alfaro@ibsgroup.mx": "System3ras3$0",
+        "administracion@ibsgroup.mx": "System3ras3$!"
+    }
+    
+    # Verify admin credentials
+    if admin_username not in authorized_admins or authorized_admins[admin_username] != admin_password:
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    try:
+        # Update password
+        result = await db.users.update_one(
+            {"email": target_email},
+            {"$set": {
+                "password": new_password,  # In production, hash this password
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "updated_by": admin_username
+            }}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        return {
+            "success": True,
+            "message": f"Contraseña actualizada para {target_email}"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error cambiando contraseña: {str(e)}")
+
+@app.post("/api/admin/users/delete")
+async def delete_user(
+    admin_username: str = Form(...),
+    admin_password: str = Form(...),
+    target_email: str = Form(...)
+):
+    """Delete user - Admin only"""
+    # Authorized admins
+    authorized_admins = {
+        "f.alfaro@ibsgroup.mx": "System3ras3$0",
+        "administracion@ibsgroup.mx": "System3ras3$!"
+    }
+    
+    # Verify admin credentials
+    if admin_username not in authorized_admins or authorized_admins[admin_username] != admin_password:
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    try:
+        # Delete user
+        result = await db.users.delete_one({"email": target_email})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        return {
+            "success": True,
+            "message": f"Usuario {target_email} eliminado exitosamente"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error eliminando usuario: {str(e)}")
+
