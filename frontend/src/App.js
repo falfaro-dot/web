@@ -695,11 +695,6 @@ function App() {
     }
   };
   
-    } catch (error) {
-      setFondeoMessage('✗ Error de conexión: ' + error.message);
-    }
-  };
-  
   
   // Load dashboard data when view changes
   useEffect(() => {
