@@ -52,6 +52,7 @@ function App() {
   const [deleteFondeoConfirmModalOpen, setDeleteFondeoConfirmModalOpen] = useState(false);
   
   // Admin state
+  const [adminAuthenticated, setAdminAuthenticated] = useState(false);
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [newUsername, setNewUsername] = useState('');
