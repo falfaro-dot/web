@@ -1881,21 +1881,51 @@ async def delete_fondeos_by_date_range(request: DeleteDataRequest):
         fecha_inicio_str = request.fecha_inicio.split('T')[0] if 'T' in request.fecha_inicio else request.fecha_inicio
         fecha_fin_str = request.fecha_fin.split('T')[0] if 'T' in request.fecha_fin else request.fecha_fin
         
-        # Use regex to match any time on the date
-        # This will match: "2025-01-15", "2025-01-15 10:30:00", "2025-01-15T10:30:00", etc.
+        # Convert YYYY-MM-DD to DD/MM/YYYY to match database format
+        # fecha_inicio: "2025-01-15" -> "15/01/2025"
+        from datetime import datetime
+        fecha_inicio_obj = datetime.strptime(fecha_inicio_str, "%Y-%m-%d")
+        fecha_fin_obj = datetime.strptime(fecha_fin_str, "%Y-%m-%d")
+        
+        fecha_inicio_db = fecha_inicio_obj.strftime("%d/%m/%Y")
+        fecha_fin_db = fecha_fin_obj.strftime("%d/%m/%Y")
+        
+        # Use regex to match dates starting with the date (ignoring time part)
+        # This will match "15/01/2025" and "15/01/2025 14:30:00"
         query = {
-            "fecha_creacion": {
-                "$gte": fecha_inicio_str,
-                "$lte": fecha_fin_str + " 23:59:59"  # Include all times on end date
-            }
+            "$and": [
+                {"fecha_creacion": {"$regex": f"^{fecha_inicio_db.split('/')[0]}/{fecha_inicio_db.split('/')[1]}/{fecha_inicio_db.split('/')[2]}"}},
+                {"fecha_creacion": {"$lte": fecha_fin_db + " 23:59:59"}}
+            ]
         }
         
-        result = await db.fondeo_transactions.delete_many(query)
+        # Better approach: Get all and filter by date range
+        all_transactions = await db.fondeo_transactions.find().to_list(length=None)
+        ids_to_delete = []
+        
+        for tx in all_transactions:
+            fecha_str = tx.get("fecha_creacion", "")
+            if fecha_str:
+                # Extract date part (DD/MM/YYYY) from "DD/MM/YYYY HH:MM:SS"
+                fecha_part = fecha_str.split(' ')[0] if ' ' in fecha_str else fecha_str
+                try:
+                    tx_date = datetime.strptime(fecha_part, "%d/%m/%Y")
+                    if fecha_inicio_obj <= tx_date <= fecha_fin_obj:
+                        ids_to_delete.append(tx["_id"])
+                except:
+                    pass
+        
+        # Delete by IDs
+        if ids_to_delete:
+            result = await db.fondeo_transactions.delete_many({"_id": {"$in": ids_to_delete}})
+            deleted_count = result.deleted_count
+        else:
+            deleted_count = 0
         
         return {
             "success": True,
-            "message": f"{result.deleted_count} transacciones de fondeo eliminadas",
-            "deleted_count": result.deleted_count
+            "message": f"{deleted_count} transacciones de fondeo eliminadas",
+            "deleted_count": deleted_count
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error eliminando datos: {str(e)}")
