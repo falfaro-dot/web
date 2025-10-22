@@ -523,7 +523,7 @@ function App() {
         setFondeoMessage('✗ Error: ' + (data.detail || 'Error desconocido'));
       }
 
-  // Delete Fondeo data by date range
+  // Delete Fondeo data by date range (with admin authentication)
   const handleDeleteFondeoData = async () => {
     if (!deleteFondeoDateStart || !deleteFondeoDateEnd) {
       alert('Por favor seleccione ambas fechas');
