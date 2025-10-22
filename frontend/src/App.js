@@ -2608,58 +2608,21 @@ function App() {
 
         {activeView === 'admin' && (
           <div className="admin-section">
-            {/* Autenticación Admin */}
-            <div className="section-card">
-              <h2>🔐 Autenticación de Administrador</h2>
-              <p className="warning-text">⚠️ Esta sección requiere credenciales de administrador</p>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Usuario Administrador</label>
-                  <input
-                    type="text"
-                    value={adminUsername}
-                    onChange={(e) => setAdminUsername(e.target.value)}
-                    placeholder="usuario@ibsgroup.mx"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Contraseña</label>
-                  <input
-                    type="password"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    placeholder="••••••••"
-                  />
-                </div>
-                <button className="btn-search" onClick={loadUsers}>
-                  🔍 Cargar Usuarios
-                </button>
-              </div>
-              {adminMessage && <p className={adminMessage.includes('✓') ? 'success-message' : 'error-message'}>{adminMessage}</p>}
-            </div>
-
-            {/* Crear Usuario */}
-            <div className="section-card">
-              <h2>➕ Crear Nuevo Usuario</h2>
-              <form onSubmit={handleCreateUser}>
-                <div className="form-row">
+            {!adminAuthenticated ? (
+              /* Modal de Autenticación */
+              <div className="section-card" style={{maxWidth: '500px', margin: '50px auto'}}>
+                <h2>🔐 Autenticación de Administrador</h2>
+                <p className="warning-text">⚠️ Esta sección requiere credenciales de administrador</p>
+                <p className="modal-info">Solo usuarios autorizados pueden acceder.</p>
+                
+                <form onSubmit={handleAdminAuthentication}>
                   <div className="form-group">
-                    <label>Nombre de Usuario</label>
+                    <label>Usuario Administrador</label>
                     <input
                       type="text"
-                      value={newUsername}
-                      onChange={(e) => setNewUsername(e.target.value)}
-                      placeholder="Nombre completo"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      value={newUserEmail}
-                      onChange={(e) => setNewUserEmail(e.target.value)}
-                      placeholder="email@ibsgroup.mx"
+                      value={adminUsername}
+                      onChange={(e) => setAdminUsername(e.target.value)}
+                      placeholder="usuario@ibsgroup.mx"
                       required
                     />
                   </div>
@@ -2667,83 +2630,141 @@ function App() {
                     <label>Contraseña</label>
                     <input
                       type="password"
-                      value={newUserPassword}
-                      onChange={(e) => setNewUserPassword(e.target.value)}
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
                       placeholder="••••••••"
                       required
                     />
                   </div>
-                </div>
-                <button type="submit" className="btn-primary">
-                  Crear Usuario
-                </button>
-              </form>
-            </div>
-
-            {/* Cambiar Contraseña */}
-            <div className="section-card">
-              <h2>🔑 Cambiar Contraseña de Usuario</h2>
-              <form onSubmit={handleChangePassword}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Email del Usuario</label>
-                    <input
-                      type="email"
-                      value={changePasswordEmail}
-                      onChange={(e) => setChangePasswordEmail(e.target.value)}
-                      placeholder="usuario@ibsgroup.mx"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Nueva Contraseña</label>
-                    <input
-                      type="password"
-                      value={changePasswordNew}
-                      onChange={(e) => setChangePasswordNew(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                    />
-                  </div>
-                </div>
-                <button type="submit" className="btn-primary">
-                  Cambiar Contraseña
-                </button>
-              </form>
-            </div>
-
-            {/* Lista de Usuarios */}
-            <div className="section-card">
-              <h2>👥 Usuarios del Sistema</h2>
-              <div className="table-container">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Nombre</th>
-                      <th>Email</th>
-                      <th>Fecha de Creación</th>
-                      <th>Creado Por</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.length === 0 ? (
-                      <tr>
-                        <td colSpan="4" className="no-data">No hay usuarios cargados. Use "Cargar Usuarios" arriba.</td>
-                      </tr>
-                    ) : (
-                      users.map((user, idx) => (
-                        <tr key={idx}>
-                          <td>{user.username}</td>
-                          <td>{user.email}</td>
-                          <td>{user.created_at ? new Date(user.created_at).toLocaleDateString('es-MX') : 'N/A'}</td>
-                          <td>{user.created_by || 'N/A'}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                  <button type="submit" className="btn-primary" style={{width: '100%'}}>
+                    🔓 Acceder
+                  </button>
+                </form>
+                
+                {adminMessage && <p className={adminMessage.includes('✓') ? 'success-message' : 'error-message'} style={{marginTop: '15px'}}>{adminMessage}</p>}
               </div>
-            </div>
+            ) : (
+              /* Panel de Administración Autenticado */
+              <>
+                <div className="section-card">
+                  <div className="transactions-header">
+                    <h2>👥 Panel de Administración</h2>
+                    <button className="btn-secondary" onClick={handleAdminLogout}>
+                      🚪 Cerrar Sesión
+                    </button>
+                  </div>
+                  <p>Administrador: <strong>{adminUsername}</strong></p>
+                </div>
+
+                {/* Crear Usuario */}
+                <div className="section-card">
+                  <h2>➕ Crear Nuevo Usuario</h2>
+                  <form onSubmit={handleCreateUser}>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Nombre de Usuario</label>
+                        <input
+                          type="text"
+                          value={newUsername}
+                          onChange={(e) => setNewUsername(e.target.value)}
+                          placeholder="Nombre completo"
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Email</label>
+                        <input
+                          type="email"
+                          value={newUserEmail}
+                          onChange={(e) => setNewUserEmail(e.target.value)}
+                          placeholder="email@ibsgroup.mx"
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Contraseña</label>
+                        <input
+                          type="password"
+                          value={newUserPassword}
+                          onChange={(e) => setNewUserPassword(e.target.value)}
+                          placeholder="••••••••"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn-primary">
+                      Crear Usuario
+                    </button>
+                  </form>
+                  {adminMessage && <p className={adminMessage.includes('✓') ? 'success-message' : 'error-message'}>{adminMessage}</p>}
+                </div>
+
+                {/* Cambiar Contraseña */}
+                <div className="section-card">
+                  <h2>🔑 Cambiar Contraseña de Usuario</h2>
+                  <form onSubmit={handleChangePassword}>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Email del Usuario</label>
+                        <input
+                          type="email"
+                          value={changePasswordEmail}
+                          onChange={(e) => setChangePasswordEmail(e.target.value)}
+                          placeholder="usuario@ibsgroup.mx"
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Nueva Contraseña</label>
+                        <input
+                          type="password"
+                          value={changePasswordNew}
+                          onChange={(e) => setChangePasswordNew(e.target.value)}
+                          placeholder="••••••••"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn-primary">
+                      Cambiar Contraseña
+                    </button>
+                  </form>
+                </div>
+
+                {/* Lista de Usuarios */}
+                <div className="section-card">
+                  <h2>👥 Usuarios del Sistema</h2>
+                  <div className="table-container">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Nombre</th>
+                          <th>Email</th>
+                          <th>Fecha de Creación</th>
+                          <th>Creado Por</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {users.length === 0 ? (
+                          <tr>
+                            <td colSpan="4" className="no-data">No hay usuarios cargados.</td>
+                          </tr>
+                        ) : (
+                          users.map((user, idx) => (
+                            <tr key={idx}>
+                              <td>{user.username}</td>
+                              <td>{user.email}</td>
+                              <td>{user.created_at ? new Date(user.created_at).toLocaleDateString('es-MX') : 'N/A'}</td>
+                              <td>{user.created_by || 'N/A'}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
