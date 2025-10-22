@@ -44,6 +44,24 @@ function App() {
   const [deleteCajaDateEnd, setDeleteCajaDateEnd] = useState('');
   const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
   const [deleteCajaConfirmModalOpen, setDeleteCajaConfirmModalOpen] = useState(false);
+  const [deleteFondeoModalOpen, setDeleteFondeoModalOpen] = useState(false);
+  const [deleteFondeoUsername, setDeleteFondeoUsername] = useState('');
+  const [deleteFondeoPassword, setDeleteFondeoPassword] = useState('');
+  const [deleteFondeoDateStart, setDeleteFondeoDateStart] = useState('');
+  const [deleteFondeoDateEnd, setDeleteFondeoDateEnd] = useState('');
+  const [deleteFondeoConfirmModalOpen, setDeleteFondeoConfirmModalOpen] = useState(false);
+  
+  // Admin state
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [changePasswordEmail, setChangePasswordEmail] = useState('');
+  const [changePasswordNew, setChangePasswordNew] = useState('');
+  const [adminMessage, setAdminMessage] = useState('');
+  const [users, setUsers] = useState([]);
+  
   
   // Caja Chica state
   const [cajaFecha, setCajaFecha] = useState('');
