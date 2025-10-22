@@ -522,6 +522,10 @@ function App() {
       } else {
         setFondeoMessage('✗ Error: ' + (data.detail || 'Error desconocido'));
       }
+    } catch (error) {
+      setFondeoMessage('✗ Error de conexión: ' + error.message);
+    }
+  };
 
   // Delete Fondeo data by date range (with admin authentication)
   const handleDeleteFondeoData = async () => {
