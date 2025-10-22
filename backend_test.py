@@ -1251,51 +1251,81 @@ class TreasuryTestRunner:
         """Create test fondeos data and verify deletion works correctly"""
         print("\n  ✅ Step 3: Testing fondeos deletion functionality with controlled data...")
         
-        # Note: Since we can't directly create fondeos transactions via API (would need Excel upload),
-        # we'll focus on testing the deletion endpoint behavior and documenting findings
-        
         # Test authentication with correct credentials
         credentials = {
             "username": "f.alfaro@ibsgroup.mx",
             "password": "System3ras3$0"
         }
         
-        # Test with a recent date range that should be safe
-        test_date_range = {
-            "fecha_inicio": "2025-01-20T00:00:00Z",
-            "fecha_fin": "2025-01-21T23:59:59Z"
-        }
-        
+        # First, get actual dates from existing fondeos to test with real data
         try:
-            delete_data = {
-                **credentials,
-                **test_date_range
-            }
-            
-            response = self.session.post(f"{BACKEND_URL}/admin/delete_fondeos", json=delete_data)
+            response = self.session.get(f"{BACKEND_URL}/fondeos/transactions")
             if response.status_code == 200:
-                result = response.json()
-                if result.get("success"):
-                    deleted_count = result.get("deleted_count", 0)
-                    self.log_result("Fondeos Deletion - Functionality Test", True, 
-                                  f"Deletion endpoint working correctly. Deleted {deleted_count} transactions in test range", "fondeos_tests")
+                transactions = response.json()
+                if isinstance(transactions, list) and len(transactions) > 0:
+                    # Get a sample date from existing data
+                    sample_date = transactions[0].get("fecha_creacion", "")
+                    if sample_date:
+                        # Extract date part from DD/MM/YYYY HH:MM:SS format
+                        # Sample: "29/08/2025 17:07:39" -> need to convert to YYYY-MM-DD for deletion test
+                        if "/" in sample_date:
+                            date_part = sample_date.split(" ")[0]  # "29/08/2025"
+                            day, month, year = date_part.split("/")
+                            # Convert to YYYY-MM-DD format for deletion test
+                            converted_date = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+                            
+                            self.log_result("Fondeos Date Format Analysis", True, 
+                                          f"Found sample date '{sample_date}' in DB, converted to '{converted_date}' for deletion test", "fondeos_tests")
+                            
+                            # Test deletion with the converted date format
+                            test_date_range = {
+                                "fecha_inicio": f"{converted_date}T00:00:00Z",
+                                "fecha_fin": f"{converted_date}T23:59:59Z"
+                            }
+                            
+                            delete_data = {
+                                **credentials,
+                                **test_date_range
+                            }
+                            
+                            response = self.session.post(f"{BACKEND_URL}/admin/delete_fondeos", json=delete_data)
+                            if response.status_code == 200:
+                                result = response.json()
+                                if result.get("success"):
+                                    deleted_count = result.get("deleted_count", 0)
+                                    if deleted_count > 0:
+                                        self.log_result("Fondeos Deletion - Real Date Test", True, 
+                                                      f"Successfully deleted {deleted_count} transactions using converted date format", "fondeos_tests")
+                                    else:
+                                        self.log_result("Fondeos Deletion - Real Date Test", False, 
+                                                      f"❌ CONFIRMED BUG: 0 transactions deleted despite matching date. DB format: '{sample_date}', Query format: '{converted_date}' - DATE FORMAT MISMATCH!", "fondeos_tests")
+                                else:
+                                    self.log_result("Fondeos Deletion - Real Date Test", False, 
+                                                  f"Deletion failed: {result.get('message', 'Unknown error')}", "fondeos_tests")
+                            else:
+                                self.log_result("Fondeos Deletion - Real Date Test", False, 
+                                              f"HTTP {response.status_code}: {response.text}", "fondeos_tests")
+                        else:
+                            self.log_result("Fondeos Date Format Analysis", False, 
+                                          f"Unexpected date format in DB: '{sample_date}'", "fondeos_tests")
+                    else:
+                        self.log_result("Fondeos Date Format Analysis", False, 
+                                      "No fecha_creacion field found in transactions", "fondeos_tests")
                 else:
-                    self.log_result("Fondeos Deletion - Functionality Test", False, 
-                                  f"Deletion failed: {result.get('message', 'Unknown error')}", "fondeos_tests")
-            elif response.status_code == 403:
-                self.log_result("Fondeos Deletion - Functionality Test", False, 
-                              "Authentication failed with provided credentials", "fondeos_tests")
+                    self.log_result("Fondeos Date Format Analysis", True, 
+                                  "No fondeos transactions in database to test with", "fondeos_tests")
             else:
-                self.log_result("Fondeos Deletion - Functionality Test", False, 
-                              f"HTTP {response.status_code}: {response.text}", "fondeos_tests")
+                self.log_result("Fondeos Date Format Analysis", False, 
+                              f"Failed to get fondeos transactions: {response.text}", "fondeos_tests")
         except Exception as e:
-            self.log_result("Fondeos Deletion - Functionality Test", False, f"Exception: {str(e)}", "fondeos_tests")
+            self.log_result("Fondeos Date Format Analysis", False, f"Exception: {str(e)}", "fondeos_tests")
         
         # Test with invalid credentials to verify security
         invalid_credentials = {
             "username": "invalid@user.com",
             "password": "wrongpassword",
-            **test_date_range
+            "fecha_inicio": "2025-01-20T00:00:00Z",
+            "fecha_fin": "2025-01-21T23:59:59Z"
         }
         
         try:
