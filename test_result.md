@@ -180,6 +180,21 @@ backend:
         agent: "testing"
         comment: "✅ PASSED: Funcionalidad Afectación a Tesorería working correctly. Tested both scenarios successfully: 1) Abono en caja chica + Abono a cuenta bancaria - bank balance correctly increased from 11321.57 to 16321.57 (5000 increase), 2) Abono en caja chica + Abono a tesorería - treasury balance correctly increased from 149450.0 to 154450.0 (5000 increase). Endpoint used: /api/efectivo/create (not /api/cash/transactions as mentioned in review request). Authentication works with new email-based credentials (operaciones@ibsgroup.mx/Sistema2). All impact calculations are accurate and balances update correctly in database."
 
+  - task: "Borrado de transacciones de Fondeos por rango de fechas"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implementado endpoint POST /api/admin/delete_fondeos para borrar transacciones de fondeos por rango de fechas. Requiere autenticación especial (f.alfaro@ibsgroup.mx o administracion@ibsgroup.mx). Usuario reporta que no borra datos - posible problema con formato de fechas en la comparación."
+      - working: false
+        agent: "user"
+        comment: "El botón de borrar datos funciona (se ejecuta) pero no borra ningún dato de la tabla. Posiblemente no encuentra las transacciones por un problema de formato de fechas."
+
   - task: "Endpoints de dashboard"
     implemented: true
     working: true
