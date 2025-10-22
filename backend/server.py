@@ -1686,18 +1686,32 @@ async def get_fondeo_transactions(
 ):
     """Get fondeo transactions with optional date filter"""
     try:
-        query = {}
-        
         if fecha_inicio and fecha_fin:
-            # Add time range to include all times on both dates
-            query["fecha_creacion"] = {
-                "$gte": fecha_inicio,
-                "$lte": fecha_fin + " 23:59:59"
-            }
-        
-        transactions = await db.fondeo_transactions.find(query).sort("fecha_creacion", -1).to_list(length=None)
-        
-        return serialize_doc(transactions)
+            # Convert YYYY-MM-DD to datetime for comparison
+            from datetime import datetime
+            fecha_inicio_obj = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+            fecha_fin_obj = datetime.strptime(fecha_fin, "%Y-%m-%d")
+            
+            # Get all transactions and filter by date
+            all_transactions = await db.fondeo_transactions.find().sort("fecha_creacion", -1).to_list(length=None)
+            filtered_transactions = []
+            
+            for tx in all_transactions:
+                fecha_str = tx.get("fecha_creacion", "")
+                if fecha_str:
+                    # Extract date part (DD/MM/YYYY) from "DD/MM/YYYY HH:MM:SS"
+                    fecha_part = fecha_str.split(' ')[0] if ' ' in fecha_str else fecha_str
+                    try:
+                        tx_date = datetime.strptime(fecha_part, "%d/%m/%Y")
+                        if fecha_inicio_obj <= tx_date <= fecha_fin_obj:
+                            filtered_transactions.append(tx)
+                    except:
+                        pass
+            
+            return serialize_doc(filtered_transactions)
+        else:
+            transactions = await db.fondeo_transactions.find().sort("fecha_creacion", -1).to_list(length=None)
+            return serialize_doc(transactions)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error obteniendo transacciones: {str(e)}")
 
@@ -1708,16 +1722,29 @@ async def get_fondeos_summary(
 ):
     """Get fondeos summary with totals and subtotals by account"""
     try:
-        query = {}
-        
         if fecha_inicio and fecha_fin:
-            # Add time range to include all times on both dates
-            query["fecha_creacion"] = {
-                "$gte": fecha_inicio,
-                "$lte": fecha_fin + " 23:59:59"
-            }
-        
-        transactions = await db.fondeo_transactions.find(query).to_list(length=None)
+            # Convert YYYY-MM-DD to datetime for comparison
+            from datetime import datetime
+            fecha_inicio_obj = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+            fecha_fin_obj = datetime.strptime(fecha_fin, "%Y-%m-%d")
+            
+            # Get all transactions and filter by date
+            all_transactions = await db.fondeo_transactions.find().to_list(length=None)
+            transactions = []
+            
+            for tx in all_transactions:
+                fecha_str = tx.get("fecha_creacion", "")
+                if fecha_str:
+                    # Extract date part (DD/MM/YYYY) from "DD/MM/YYYY HH:MM:SS"
+                    fecha_part = fecha_str.split(' ')[0] if ' ' in fecha_str else fecha_str
+                    try:
+                        tx_date = datetime.strptime(fecha_part, "%d/%m/%Y")
+                        if fecha_inicio_obj <= tx_date <= fecha_fin_obj:
+                            transactions.append(tx)
+                    except:
+                        pass
+        else:
+            transactions = await db.fondeo_transactions.find().to_list(length=None)
         
         # Separate by account
         nexbill_transactions = [tx for tx in transactions if tx.get("cuenta_origen") == "NEXBILL STP"]
