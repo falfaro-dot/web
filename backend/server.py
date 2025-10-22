@@ -1600,6 +1600,9 @@ async def upload_fondeos_excel(
             raise HTTPException(status_code=400, detail=f"Columnas faltantes: {', '.join(missing_cols)}")
         
         # Process each row
+        transactions_added = 0
+        transactions_skipped = 0
+        
         for row_idx in range(2, ws.max_row + 1):
             row = ws[row_idx]
             
@@ -1623,6 +1626,13 @@ async def upload_fondeos_excel(
             # Skip if essential fields are missing
             if not fecha_cell or not tipo_operacion:
                 continue
+            
+            # Check for duplicate using identificador
+            if identificador:
+                existing = await db.fondeo_transactions.find_one({"identificador": str(identificador)})
+                if existing:
+                    transactions_skipped += 1
+                    continue  # Skip duplicate
             
             # Parse fecha
             if isinstance(fecha_cell, datetime):
@@ -1653,10 +1663,15 @@ async def upload_fondeos_excel(
         # Clean up
         file_path.unlink()
         
+        message = f"{transactions_added} transacciones procesadas"
+        if transactions_skipped > 0:
+            message += f", {transactions_skipped} duplicadas omitidas"
+        
         return {
             "success": True,
-            "message": f"{transactions_added} transacciones de fondeo procesadas exitosamente",
-            "transactions_added": transactions_added
+            "message": message,
+            "transactions_added": transactions_added,
+            "transactions_skipped": transactions_skipped
         }
         
     except Exception as e:
