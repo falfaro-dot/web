@@ -947,6 +947,14 @@ function App() {
           💰 Fondeos
         </button>
 
+        <button
+          className={activeView === 'admin' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveView('admin')}
+        >
+          👥 Administración
+        </button>
+
+
       </nav>
       
       {/* Main Content */}
