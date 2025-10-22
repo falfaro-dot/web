@@ -683,6 +683,8 @@ function App() {
     } else if (activeView === 'fondeos') {
       loadFondeoTransactions();
       loadFondeoSummary();
+    } else if (activeView === 'admin') {
+      // Admin view - no automatic loading
     }
   }, [activeView]);
   
