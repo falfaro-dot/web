@@ -1826,6 +1826,7 @@ async def export_fondeos_xlsx(
             ws.cell(row=row_num, column=8, value=tx.get("cuenta_origen", ""))
             ws.cell(row=row_num, column=9, value=tx.get("estado", ""))
             ws.cell(row=row_num, column=10, value=tx.get("concepto", ""))
+            ws.cell(row=row_num, column=11, value=tx.get("identificador", ""))
         
         # Auto-adjust column widths
         for column in ws.columns:
