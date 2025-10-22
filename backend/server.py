@@ -1873,11 +1873,12 @@ async def delete_fondeos_by_date_range(request: DeleteDataRequest):
         fecha_inicio_str = request.fecha_inicio.split('T')[0] if 'T' in request.fecha_inicio else request.fecha_inicio
         fecha_fin_str = request.fecha_fin.split('T')[0] if 'T' in request.fecha_fin else request.fecha_fin
         
-        # Delete fondeo transactions in date range
+        # Use regex to match any time on the date
+        # This will match: "2025-01-15", "2025-01-15 10:30:00", "2025-01-15T10:30:00", etc.
         query = {
             "fecha_creacion": {
                 "$gte": fecha_inicio_str,
-                "$lte": fecha_fin_str
+                "$lte": fecha_fin_str + " 23:59:59"  # Include all times on end date
             }
         }
         
