@@ -352,7 +352,8 @@ metadata:
 test_plan:
   current_focus:
     - "Borrado de transacciones de Fondeos por rango de fechas"
-  stuck_tasks: []
+  stuck_tasks:
+    - "Borrado de transacciones de Fondeos por rango de fechas"
   test_all: false
   test_priority: "high_first"
 
