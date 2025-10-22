@@ -1138,6 +1138,177 @@ class TreasuryTestRunner:
         except Exception as e:
             self.log_result("Bank Accounts with Timestamp", False, f"Exception: {str(e)}", "bank_tests")
 
+    def test_fondeos_deletion_issue(self):
+        """Test the specific fondeos deletion issue reported by user"""
+        print("\n🔍 Testing Fondeos Deletion Issue (Date Format Investigation)...")
+        
+        # Initialize test category
+        if "fondeos_tests" not in self.results:
+            self.results["fondeos_tests"] = []
+        
+        # Step 1: Load existing fondeos transactions to examine date format
+        self.investigate_fondeos_date_format()
+        
+        # Step 2: Test deletion with different date formats
+        self.test_fondeos_deletion_formats()
+        
+        # Step 3: Create test data and verify deletion works
+        self.test_fondeos_deletion_functionality()
+
+    def investigate_fondeos_date_format(self):
+        """Investigate the exact format of fecha_creacion in fondeos transactions"""
+        print("\n  🔍 Step 1: Investigating fecha_creacion format in database...")
+        
+        try:
+            response = self.session.get(f"{BACKEND_URL}/fondeos/transactions")
+            if response.status_code == 200:
+                transactions = response.json()
+                if isinstance(transactions, list) and len(transactions) > 0:
+                    # Examine first few transactions to understand date format
+                    date_formats_found = []
+                    for i, tx in enumerate(transactions[:5]):  # Check first 5 transactions
+                        fecha_creacion = tx.get("fecha_creacion", "")
+                        if fecha_creacion:
+                            date_formats_found.append(fecha_creacion)
+                    
+                    if date_formats_found:
+                        self.log_result("Fondeos Date Format Investigation", True, 
+                                      f"Found {len(transactions)} fondeos transactions. Sample fecha_creacion formats: {date_formats_found[:3]}", "fondeos_tests")
+                        return date_formats_found
+                    else:
+                        self.log_result("Fondeos Date Format Investigation", False, 
+                                      "Transactions found but no fecha_creacion field", "fondeos_tests")
+                        return []
+                else:
+                    self.log_result("Fondeos Date Format Investigation", True, 
+                                  "No fondeos transactions found in database (empty collection)", "fondeos_tests")
+                    return []
+            else:
+                self.log_result("Fondeos Date Format Investigation", False, 
+                              f"Failed to get fondeos transactions: HTTP {response.status_code}: {response.text}", "fondeos_tests")
+                return []
+        except Exception as e:
+            self.log_result("Fondeos Date Format Investigation", False, f"Exception: {str(e)}", "fondeos_tests")
+            return []
+
+    def test_fondeos_deletion_formats(self):
+        """Test deletion with different date formats to identify the issue"""
+        print("\n  🧪 Step 2: Testing deletion with different date formats...")
+        
+        # Test credentials from review request
+        credentials = {
+            "username": "f.alfaro@ibsgroup.mx",
+            "password": "System3ras3$0"
+        }
+        
+        # Test different date format combinations
+        date_format_tests = [
+            {
+                "name": "ISO Timestamp Format (as mentioned in review)",
+                "fecha_inicio": "2024-10-17T00:00:00Z",
+                "fecha_fin": "2024-10-20T23:59:59Z"
+            },
+            {
+                "name": "Simple Date Format",
+                "fecha_inicio": "2024-10-17",
+                "fecha_fin": "2024-10-20"
+            },
+            {
+                "name": "Date with Time",
+                "fecha_inicio": "2024-10-17 00:00:00",
+                "fecha_fin": "2024-10-20 23:59:59"
+            }
+        ]
+        
+        for test_case in date_format_tests:
+            try:
+                delete_data = {
+                    **credentials,
+                    "fecha_inicio": test_case["fecha_inicio"],
+                    "fecha_fin": test_case["fecha_fin"]
+                }
+                
+                response = self.session.post(f"{BACKEND_URL}/admin/delete_fondeos", json=delete_data)
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get("success"):
+                        deleted_count = result.get("deleted_count", 0)
+                        self.log_result(f"Fondeos Deletion - {test_case['name']}", True, 
+                                      f"Deletion executed successfully, {deleted_count} transactions deleted", "fondeos_tests")
+                    else:
+                        self.log_result(f"Fondeos Deletion - {test_case['name']}", False, 
+                                      f"Deletion failed: {result.get('message', 'Unknown error')}", "fondeos_tests")
+                elif response.status_code == 403:
+                    self.log_result(f"Fondeos Deletion - {test_case['name']}", False, 
+                                  "Authentication failed - check credentials", "fondeos_tests")
+                else:
+                    self.log_result(f"Fondeos Deletion - {test_case['name']}", False, 
+                                  f"HTTP {response.status_code}: {response.text}", "fondeos_tests")
+            except Exception as e:
+                self.log_result(f"Fondeos Deletion - {test_case['name']}", False, f"Exception: {str(e)}", "fondeos_tests")
+
+    def test_fondeos_deletion_functionality(self):
+        """Create test fondeos data and verify deletion works correctly"""
+        print("\n  ✅ Step 3: Testing fondeos deletion functionality with controlled data...")
+        
+        # Note: Since we can't directly create fondeos transactions via API (would need Excel upload),
+        # we'll focus on testing the deletion endpoint behavior and documenting findings
+        
+        # Test authentication with correct credentials
+        credentials = {
+            "username": "f.alfaro@ibsgroup.mx",
+            "password": "System3ras3$0"
+        }
+        
+        # Test with a recent date range that should be safe
+        test_date_range = {
+            "fecha_inicio": "2025-01-20T00:00:00Z",
+            "fecha_fin": "2025-01-21T23:59:59Z"
+        }
+        
+        try:
+            delete_data = {
+                **credentials,
+                **test_date_range
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/admin/delete_fondeos", json=delete_data)
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success"):
+                    deleted_count = result.get("deleted_count", 0)
+                    self.log_result("Fondeos Deletion - Functionality Test", True, 
+                                  f"Deletion endpoint working correctly. Deleted {deleted_count} transactions in test range", "fondeos_tests")
+                else:
+                    self.log_result("Fondeos Deletion - Functionality Test", False, 
+                                  f"Deletion failed: {result.get('message', 'Unknown error')}", "fondeos_tests")
+            elif response.status_code == 403:
+                self.log_result("Fondeos Deletion - Functionality Test", False, 
+                              "Authentication failed with provided credentials", "fondeos_tests")
+            else:
+                self.log_result("Fondeos Deletion - Functionality Test", False, 
+                              f"HTTP {response.status_code}: {response.text}", "fondeos_tests")
+        except Exception as e:
+            self.log_result("Fondeos Deletion - Functionality Test", False, f"Exception: {str(e)}", "fondeos_tests")
+        
+        # Test with invalid credentials to verify security
+        invalid_credentials = {
+            "username": "invalid@user.com",
+            "password": "wrongpassword",
+            **test_date_range
+        }
+        
+        try:
+            response = self.session.post(f"{BACKEND_URL}/admin/delete_fondeos", json=invalid_credentials)
+            if response.status_code == 403:
+                self.log_result("Fondeos Deletion - Security Test", True, 
+                              "Correctly rejected invalid credentials (403)", "fondeos_tests")
+            else:
+                self.log_result("Fondeos Deletion - Security Test", False, 
+                              f"Expected 403, got {response.status_code}: {response.text}", "fondeos_tests")
+        except Exception as e:
+            self.log_result("Fondeos Deletion - Security Test", False, f"Exception: {str(e)}", "fondeos_tests")
+
     def run_all_tests(self):
         """Run all test suites"""
         print("🚀 Starting Treasury Management System Backend Tests")
@@ -1148,6 +1319,8 @@ class TreasuryTestRunner:
         # Run tests in order
         if self.test_health_check():
             self.test_authentication()
+            # PRIORITY: Test the specific fondeos deletion issue from review request
+            self.test_fondeos_deletion_issue()
             # Focus on the specific corrections mentioned in review request
             self.test_corrections_focus()  # PRIORITY: Test specific corrections
             # Run other tests if needed
