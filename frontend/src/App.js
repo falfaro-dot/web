@@ -575,6 +575,36 @@ function App() {
   
   // ============== ADMIN FUNCTIONS ==============
   
+
+  // Authenticate admin
+  const handleAdminAuthentication = async (e) => {
+    e.preventDefault();
+    
+    // Authorized admins
+    const authorizedAdmins = {
+      "f.alfaro@ibsgroup.mx": "System3ras3$0",
+      "administracion@ibsgroup.mx": "System3ras3$!"
+    };
+    
+    if (authorizedAdmins[adminUsername] === adminPassword) {
+      setAdminAuthenticated(true);
+      setAdminMessage('✓ Autenticación exitosa');
+      loadUsers();
+    } else {
+      setAdminMessage('✗ Credenciales incorrectas');
+    }
+  };
+  
+  // Logout admin
+  const handleAdminLogout = () => {
+    setAdminAuthenticated(false);
+    setAdminUsername('');
+    setAdminPassword('');
+    setAdminMessage('');
+    setUsers([]);
+  };
+  
+
   // Load users
   const loadUsers = async () => {
     if (!adminUsername || !adminPassword) {
