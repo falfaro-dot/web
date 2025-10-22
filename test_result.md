@@ -184,9 +184,9 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -194,6 +194,9 @@ backend:
       - working: false
         agent: "user"
         comment: "El botón de borrar datos funciona (se ejecuta) pero no borra ningún dato de la tabla. Posiblemente no encuentra las transacciones por un problema de formato de fechas."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL BUG CONFIRMED: Date format mismatch prevents deletion. Database stores fecha_creacion as 'DD/MM/YYYY HH:MM:SS' (e.g., '29/08/2025 17:07:39') but deletion query expects 'YYYY-MM-DD' format. The $gte/$lte MongoDB comparison fails because '2025-08-29' cannot match '29/08/2025 17:07:39'. Endpoint authentication works correctly (f.alfaro@ibsgroup.mx/System3ras3$0), returns success=true but deleted_count=0. Root cause: Lines 1881-1889 in server.py extract YYYY-MM-DD from input but database uses DD/MM/YYYY format. SOLUTION NEEDED: Convert database date format or modify query logic to handle DD/MM/YYYY comparison."
 
   - task: "Endpoints de dashboard"
     implemented: true
