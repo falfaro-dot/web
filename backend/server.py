@@ -1800,7 +1800,7 @@ async def export_fondeos_xlsx(
         # Define headers
         headers = [
             "Fecha", "Tipo de Operación", "Nombre Ordenante", "Destinatario",
-            "Egreso", "Ingreso", "Saldo", "Cuenta Origen", "Estado", "Concepto"
+            "Egreso", "Ingreso", "Saldo", "Cuenta Origen", "Estado", "Concepto", "Identificador"
         ]
         
         # Style for headers
