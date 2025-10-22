@@ -521,6 +521,144 @@ function App() {
       } else {
         setFondeoMessage('✗ Error: ' + (data.detail || 'Error desconocido'));
       }
+
+  // Delete Fondeo data by date range
+  const handleDeleteFondeoData = async () => {
+    if (!deleteFondeoDateStart || !deleteFondeoDateEnd) {
+      alert('Por favor seleccione ambas fechas');
+      return;
+    }
+    
+    if (!deleteFondeoUsername || !deleteFondeoPassword) {
+      alert('Por favor ingrese usuario y contraseña');
+      return;
+    }
+    
+    setDeleteFondeoConfirmModalOpen(true);
+  };
+  
+  // Execute delete Fondeo after confirmation
+  const executeDeleteFondeoData = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/admin/delete_fondeos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: deleteFondeoUsername,
+          password: deleteFondeoPassword,
+          fecha_inicio: deleteFondeoDateStart + 'T00:00:00Z',
+          fecha_fin: deleteFondeoDateEnd + 'T23:59:59Z'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        alert(`✓ ${data.deleted_count} transacciones de fondeo eliminadas exitosamente`);
+        setDeleteFondeoConfirmModalOpen(false);
+        setDeleteFondeoModalOpen(false);
+        setDeleteFondeoUsername('');
+        setDeleteFondeoPassword('');
+        setDeleteFondeoDateStart('');
+        setDeleteFondeoDateEnd('');
+        loadFondeoTransactions();
+      } else {
+        alert('✗ ' + (data.detail || 'Error eliminando datos'));
+        setDeleteFondeoConfirmModalOpen(false);
+      }
+    } catch (error) {
+      alert('✗ Error de conexión: ' + error.message);
+      setDeleteFondeoConfirmModalOpen(false);
+    }
+  };
+  
+  // ============== ADMIN FUNCTIONS ==============
+  
+  // Load users
+  const loadUsers = async () => {
+    if (!adminUsername || !adminPassword) {
+      setAdminMessage('✗ Por favor ingrese credenciales de administrador');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/admin/users?admin_username=${adminUsername}&admin_password=${adminPassword}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setUsers(data);
+        setAdminMessage('✓ Usuarios cargados');
+      } else {
+        setAdminMessage('✗ ' + (data.detail || 'Error cargando usuarios'));
+      }
+    } catch (error) {
+      setAdminMessage('✗ Error de conexión: ' + error.message);
+    }
+  };
+  
+  // Create user
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    formData.append('admin_username', adminUsername);
+    formData.append('admin_password', adminPassword);
+    formData.append('new_username', newUsername);
+    formData.append('new_email', newUserEmail);
+    formData.append('new_password', newUserPassword);
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/admin/users/create`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setAdminMessage(`✓ Usuario ${newUsername} creado exitosamente`);
+        setNewUsername('');
+        setNewUserEmail('');
+        setNewUserPassword('');
+        loadUsers();
+      } else {
+        setAdminMessage('✗ ' + (data.detail || 'Error creando usuario'));
+      }
+    } catch (error) {
+      setAdminMessage('✗ Error de conexión: ' + error.message);
+    }
+  };
+  
+  // Change password
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    formData.append('admin_username', adminUsername);
+    formData.append('admin_password', adminPassword);
+    formData.append('target_email', changePasswordEmail);
+    formData.append('new_password', changePasswordNew);
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/admin/users/change_password`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setAdminMessage(`✓ Contraseña actualizada para ${changePasswordEmail}`);
+        setChangePasswordEmail('');
+        setChangePasswordNew('');
+      } else {
+        setAdminMessage('✗ ' + (data.detail || 'Error cambiando contraseña'));
+      }
+    } catch (error) {
+      setAdminMessage('✗ Error de conexión: ' + error.message);
+    }
+  };
+  
     } catch (error) {
       setFondeoMessage('✗ Error de conexión: ' + error.message);
     }
