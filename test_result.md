@@ -347,7 +347,8 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Borrado de transacciones de Fondeos por rango de fechas"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
