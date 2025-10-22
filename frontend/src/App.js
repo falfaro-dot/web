@@ -2448,12 +2448,13 @@ function App() {
                       <th>Saldo</th>
                       <th>Cuenta Origen</th>
                       <th>Estado</th>
+                      <th>Identificador</th>
                     </tr>
                   </thead>
                   <tbody>
                     {fondeoTransactions.length === 0 ? (
                       <tr>
-                        <td colSpan="9" className="no-data">No hay transacciones de fondeo</td>
+                        <td colSpan="10" className="no-data">No hay transacciones de fondeo</td>
                       </tr>
                     ) : (
                       fondeoTransactions.map((tx, idx) => (
@@ -2473,6 +2474,9 @@ function App() {
                           <td>
                             <span className={tx.estado === 'Exitosa' ? 'badge-green' : 'badge-red'}>
                               {tx.estado}
+                            </span>
+                          </td>
+                          <td className="identificador-cell">{tx.identificador || 'N/A'}</td>
                             </span>
                           </td>
                         </tr>
