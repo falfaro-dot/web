@@ -2563,8 +2563,6 @@ function App() {
                             </span>
                           </td>
                           <td className="identificador-cell">{tx.identificador || 'N/A'}</td>
-                            </span>
-                          </td>
                         </tr>
                       ))
                     )}
