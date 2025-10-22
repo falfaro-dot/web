@@ -1689,7 +1689,11 @@ async def get_fondeo_transactions(
         query = {}
         
         if fecha_inicio and fecha_fin:
-            query["fecha_creacion"] = {"$gte": fecha_inicio, "$lte": fecha_fin}
+            # Add time range to include all times on both dates
+            query["fecha_creacion"] = {
+                "$gte": fecha_inicio,
+                "$lte": fecha_fin + " 23:59:59"
+            }
         
         transactions = await db.fondeo_transactions.find(query).sort("fecha_creacion", -1).to_list(length=None)
         
@@ -1707,7 +1711,11 @@ async def get_fondeos_summary(
         query = {}
         
         if fecha_inicio and fecha_fin:
-            query["fecha_creacion"] = {"$gte": fecha_inicio, "$lte": fecha_fin}
+            # Add time range to include all times on both dates
+            query["fecha_creacion"] = {
+                "$gte": fecha_inicio,
+                "$lte": fecha_fin + " 23:59:59"
+            }
         
         transactions = await db.fondeo_transactions.find(query).to_list(length=None)
         
