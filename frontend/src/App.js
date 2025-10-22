@@ -2415,17 +2415,25 @@ function App() {
             <div className="section-card">
               <div className="transactions-header">
                 <h2>📋 Historial de Fondeos</h2>
-                <button
-                  className="btn-export"
-                  onClick={() => {
-                    let url = `${BACKEND_URL}/api/export/fondeos/xlsx?`;
-                    if (fondeoSearchDateStart) url += `fecha_inicio=${fondeoSearchDateStart}&`;
-                    if (fondeoSearchDateEnd) url += `fecha_fin=${fondeoSearchDateEnd}&`;
-                    window.open(url, '_blank');
-                  }}
-                >
-                  📥 Descargar Excel
-                </button>
+                <div className="export-buttons">
+                  <button
+                    className="btn-export"
+                    onClick={() => {
+                      let url = `${BACKEND_URL}/api/export/fondeos/xlsx?`;
+                      if (fondeoSearchDateStart) url += `fecha_inicio=${fondeoSearchDateStart}&`;
+                      if (fondeoSearchDateEnd) url += `fecha_fin=${fondeoSearchDateEnd}&`;
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    📥 Descargar Excel
+                  </button>
+                  <button
+                    className="btn-delete"
+                    onClick={() => setDeleteFondeoModalOpen(true)}
+                  >
+                    🗑️ Borrar Datos
+                  </button>
+                </div>
               </div>
               <div className="table-container">
                 <table className="data-table">
