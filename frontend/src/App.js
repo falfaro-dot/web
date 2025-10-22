@@ -575,7 +575,8 @@ function App() {
   
   // ============== ADMIN FUNCTIONS ==============
   
-
+  // ============== ADMIN FUNCTIONS ==============
+  
   // Authenticate admin
   const handleAdminAuthentication = async (e) => {
     e.preventDefault();
